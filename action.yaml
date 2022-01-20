@@ -1,0 +1,25 @@
+name: 'kwctl-installer'
+description: 'Install kwctl and includes it inside of PATH'
+branding:
+  icon: 'package'
+  color: 'blue'
+inputs:
+  KWCTL_VERSION:
+    description: 'kwctl release to be installed'
+    required: false
+    default: v0.2.5-rc2
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: |
+        #!/bin/bash
+        set -e
+
+        INSTALL_DIR=$HOME/.kwctl
+
+        mkdir -p $INSTALL_DIR
+
+        curl -sL https://github.com/kubewarden/kwctl/releases/download/${{ inputs.KWCTL_VERSION }}/kwctl-linux-x86_64 -o $INSTALL_DIR/kwctl
+        echo $INSTALL_DIR >> $GITHUB_PATH
+
