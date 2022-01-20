@@ -21,5 +21,6 @@ runs:
         mkdir -p $INSTALL_DIR
 
         curl -sL https://github.com/kubewarden/kwctl/releases/download/${{ inputs.KWCTL_VERSION }}/kwctl-linux-x86_64 -o $INSTALL_DIR/kwctl
+        chmod 755 $INSTALL_DIR/kwctl
         echo $INSTALL_DIR >> $GITHUB_PATH
 
