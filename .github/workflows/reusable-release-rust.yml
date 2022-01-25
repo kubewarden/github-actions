@@ -16,13 +16,6 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
-    permissions:
-      # Required to push to GHCR
-      contents: read
-      packages: write
-      # Required by cosign keyless signing
-      id-token: write
-
     steps:
       -
         name: Install dependencies
