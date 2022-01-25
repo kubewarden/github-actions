@@ -1,0 +1,88 @@
+name: 'publish-policy'
+description: 'Sign, publish and release a Wasm policy'
+branding:
+  icon: 'package'
+  color: 'blue'
+inputs:
+  WASM_FILENAME:
+    description: 'filename of the Wasm binary'
+    required: false
+    default: annotated.wasm
+  OCI_TARGET:
+    description: |
+      URI used when doing `kwctl push`. Example:
+      `ghcr.io/kubewarden/policies/allowed-fsgroups-psp`.
+    required: true
+runs:
+  using: "composite"
+  steps:
+    -
+      name: Login to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: {{ registry }}
+        username: {{ "${{ github.repository_owner }}" }}
+        password: {{ "${{ secrets.GITHUB_TOKEN }}" }}
+    -
+      name: Install kwctl
+      uses: kubewarden/kwctl-gh-action-installer@main
+    -
+      name: Install cosign
+      uses: sigstore/cosign-installer@main
+    -
+      name: Publish Wasm policy artifact to OCI registry with the 'latest' tag
+      if: {{ "${{ startsWith(github.ref, 'refs/heads/') }}" }}
+      env:
+        COSIGN_EXPERIMENTAL: 1
+      run: |
+        set -ex
+        echo Pushing policy to OCI container registry
+        {{ "IMMUTABLE_REF=$(kwctl push -o json ${{ inputs.WASM_FILENAME }} ${{ env.OCI_TARGET }}:latest | jq -r .immutable_ref)" }}
+
+        echo Keyless signing of policy using cosign
+        {{ "cosign sign ${IMMUTABLE_REF}" }}
+    -
+      name: Publish Wasm policy artifact to OCI registry with the version tag and 'latest'
+      if: {{ "${{ startsWith(github.ref, 'refs/tags/') }}" }}
+      env:
+        COSIGN_EXPERIMENTAL: 1
+      run: |
+        set -ex
+        export OCI_TAG=$(echo $GITHUB_REF | sed -e "s|refs/tags/||")
+
+        echo Pushing policy to OCI container registry
+        {{ "IMMUTABLE_REF=$(kwctl push -o json ${{ inputs.WASM_FILENAME }} ${{ env.OCI_TARGET }}:${OCI_TAG} | jq -r .immutable_ref)" }}
+
+        echo Keyless signing of policy using cosign
+        {{" cosign sign ${IMMUTABLE_REF}" }}
+    -
+      name: Create Release
+      if: {{ "${{ startsWith(github.ref, 'refs/tags/') }}" }}
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: {{ "${{ secrets.GITHUB_TOKEN }}" }}
+      with:
+        tag_name: {{ "${{ github.ref }}" }}
+        release_name: Release {{ "${{ github.ref }}" }}
+        draft: false
+        prerelease: false
+    -
+      name: Upload Release Asset
+      if: {{ "${{ startsWith(github.ref, 'refs/tags/') }}" }}
+      id: upload-release-asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: {{ "${{ secrets.GITHUB_TOKEN }}" }}
+      with:
+        upload_url: {{ "${{ steps.create_release.outputs.upload_url }}" }}
+        asset_path: {{ inputs.WASM_FILENAME }}
+        asset_name: annotated.wasm
+        asset_content_type: application/wasm
+    -
+      name: Notify policy-hub
+      if: {{ "${{ startsWith(github.ref, 'refs/tags/') }}" }}
+      uses: kubewarden/notify-policy-hub@main
+      with:
+        USERNAME: chimera-kube-bot
+        PAT: {{ "${{ secrets.WORKFLOW_PAT }}" }}
