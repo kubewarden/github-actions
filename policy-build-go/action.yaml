@@ -1,0 +1,39 @@
+name: 'kubewarden-policy-build-go'
+description: 'Build a go policy using go'
+branding:
+  icon: 'package'
+  color: 'blue'
+inputs:
+  metadata-file:
+    description: 'name of the metata file'
+    required: false
+    default: metadata.yml
+  wasm-binary:
+    description: 'path to the wasm file to be annotated'
+    required: true
+    default: policy.wasm
+  tinygo-version:
+    required: true
+    default: 0.18.0
+runs:
+  using: "composite"
+  steps:
+    -
+      name: Checkout code
+      uses: actions/checkout@v2
+    -
+      name: Install tinygo
+      shell: bash
+      run: |
+        wget https://github.com/tinygo-org/tinygo/releases/download/v${{ inputs.tinygo-version }}/tinygo_${{ inputs.tinygo-version }}_amd64.deb
+        sudo dpkg -i tinygo_${{ inputs.tinygo-version }}_amd64.deb
+    -
+      name: Build Wasm module
+      shell: bash
+      run: |
+        tinygo build -o ${{ inputs.wasm-binary }} -target=wasi -no-debug .
+    -
+      name: Annotate Wasm module
+      shell: bash
+      run: |
+        kwctl annotate -m ${{ inputs.metadata-file }} -o annotated.wasm ${{ inputs.wasm-binary }}
