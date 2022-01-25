@@ -1,0 +1,46 @@
+name: Build and release a Kubewarden policy written in Rust
+
+on:
+  workflow_call:
+    inputs:
+      input-wasm:
+        type: string
+        required: true
+      oci-target:
+        type: string
+        required: true
+    secrets:
+      workflow-pat:
+        required: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      # Required to push to GHCR
+      contents: read
+      packages: write
+      # Required by cosign keyless signing
+      id-token: write
+
+    steps:
+      -
+        name: Install dependencies
+        uses: kubewarden/github-actions/policy-gh-action-dependencies@v1
+      -
+        name: Build and annotate policy
+        uses: kubewarden/github-actions/policy-build-rust@v1
+        with:
+          input-wasm: target/wasm32-unknown-unknown/release/${{ inputs.input-wasm }}.wasm
+      -
+        name: Run e2e tests
+        run: |
+          make e2e-tests
+      -
+        name: Release
+        uses: kubewarden/github-actions/policy-release@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          oci-target: ${{ inputs.oci-target }}
+          workflow-pat: ${{ secrets.workflow-pat }}
+

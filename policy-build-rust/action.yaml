@@ -1,0 +1,37 @@
+name: 'kubewarden-policy-build-rust'
+description: 'Build a rust policy using rust'
+branding:
+  icon: 'package'
+  color: 'blue'
+inputs:
+  metadata-file:
+    description: 'name of the metata file'
+    required: false
+    default: metadata.yml
+  input-wasm:
+    description: 'path to the wasm file to be annotated'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    -
+      name: Checkout code
+      uses: actions/checkout@v2
+    -
+      name: Prepare Rust environment
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+        target: wasm32-unknown-unknown
+    -
+      name: Build Wasm module
+      uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --target=wasm32-unknown-unknown --release
+    -
+      name: Annotate Wasm module
+      shell: bash
+      run: |
+        kwctl annotate -m ${{ inputs.metadata-file }} -o annotated.wasm ${{ inputs.input-wasm }}

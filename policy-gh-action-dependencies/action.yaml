@@ -1,0 +1,19 @@
+name: 'kubewarden-policy-gh-action-dependencies'
+description: 'Install all the binaries needed inside of GH action'
+branding:
+  icon: 'package'
+  color: 'blue'
+runs:
+  using: "composite"
+  steps:
+    -
+      name: Install cosign
+      uses: sigstore/cosign-installer@main
+    -
+      name: Install kwctl
+      uses: kubewarden/github-actions/kwctl-installer@v1
+    -
+      name: Install bats
+      uses: mig4/setup-bats@v1
+      with:
+        bats-version: 1.5.0
