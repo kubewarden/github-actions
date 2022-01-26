@@ -82,7 +82,7 @@ runs:
         asset_content_type: application/wasm
     -
       name: Notify policy-hub
-      if: ${{ inputs.workflow-pat != "" && startsWith(github.ref, 'refs/tags/') && !(contains(github.ref, '-alpha') || contains(github.ref, '-beta') || contains(github.ref, '-rc')) }}
+      if: ${{ inputs.workflow-pat != '' && startsWith(github.ref, 'refs/tags/') && !(contains(github.ref, '-alpha') || contains(github.ref, '-beta') || contains(github.ref, '-rc')) }}
       uses: kubewarden/notify-policy-hub@main
       with:
         USERNAME: chimera-kube-bot
