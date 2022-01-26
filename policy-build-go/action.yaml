@@ -36,4 +36,4 @@ runs:
       name: Annotate Wasm module
       shell: bash
       run: |
-        kwctl annotate -m ${{ inputs.metadata-file }} -o annotated.wasm ${{ inputs.wasm-binary }}
+        kwctl annotate -m ${{ inputs.metadata-file }} -o annotated-policy.wasm ${{ inputs.wasm-binary }}
