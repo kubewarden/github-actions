@@ -1,0 +1,56 @@
+name: Build and release a Kubewarden policy written in Swift
+
+on:
+  workflow_call:
+    inputs:
+      oci-target:
+        type: string
+        required: true
+    secrets:
+      workflow-pat:
+        description: "Github Personal Access Token (PAT) that can trigger workflow-dispatch"
+        required: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Install dependencies
+        uses: kubewarden/github-actions/policy-gh-action-dependencies@v1
+      -
+        name: install wasm-strip
+        run: |
+          export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true
+          sudo apt-get -q update
+          sudo apt-get -q install -y wabt binaryen
+      -
+        uses: actions/checkout@v2
+      -
+        name: Build release
+        uses: swiftwasm/swiftwasm-action@v5.3
+        with:
+          shell-action: swift build -c release --triple wasm32-unknown-wasi --build-path build
+      -
+        name: optimize policy
+        run: |
+          # need to fix file permissions because of some issue with Swift Foundation and filesystem
+          sudo chmod 777 build/wasm32-unknown-wasi/release/Policy.wasm
+          wasm-strip build/wasm32-unknown-wasi/release/Policy.wasm
+          wasm-opt -Os build/wasm32-unknown-wasi/release/Policy.wasm -o policy.wasm
+
+      -
+        name: Annotate Wasm module
+        run: |
+          kwctl annotate -m metadata.yml -o annotated-policy.wasm policy.wasm
+      -
+        name: Run e2e tests
+        run: |
+          make e2e-tests
+      -
+        name: Release
+        uses: kubewarden/github-actions/policy-release@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          oci-target: ${{ inputs.oci-target }}
+          workflow-pat: ${{ secrets.workflow-pat }}
