@@ -1,0 +1,17 @@
+name: Tests and linters
+
+on:
+  workflow_call:
+    inputs: {}
+    secrets: {}
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Run tests
+        uses: swiftwasm/swiftwasm-action@v5.3
+        with:
+          shell-action: carton test
