@@ -1,0 +1,55 @@
+name: Build and release a Kubewarden policy written in Assemblyscript
+
+on:
+  workflow_call:
+    inputs:
+      oci-target:
+        type: string
+        required: true
+    secrets:
+      workflow-pat:
+        description: "Github Personal Access Token (PAT) that can trigger workflow-dispatch"
+        required: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      NODE_VERSION: 14
+    steps:
+      -
+        name: Install dependencies
+        uses: kubewarden/github-actions/policy-gh-action-dependencies@v1
+      -
+        name: Setup node
+        uses: actions/setup-node@v1
+        with:
+          node-version: '${{ env.NODE_VERSION }}'
+      -
+        uses: actions/checkout@v2
+      -
+        name: Install npm
+        run: npm install
+      -
+        name: Install npm dependencies
+        run: |
+          make deps
+      -
+        name: Build Wasm module
+        run: |
+          make policy.wasm
+      -
+        name: annotate policy
+        run: |
+          make annotated-policy.wasm
+      -
+        name: Run e2e tests
+        run: |
+          make e2e-tests
+      -
+        name: Release
+        uses: kubewarden/github-actions/policy-release@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          oci-target: ${{ inputs.oci-target }}
+          workflow-pat: ${{ secrets.workflow-pat }}
