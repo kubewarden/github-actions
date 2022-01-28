@@ -6,10 +6,6 @@ on:
       oci-target:
         type: string
         required: true
-      policy-type:
-        description: "Type of Rego policy; either 'gatekeeper' or 'opa'"
-        type: string
-        required: true
     secrets:
       workflow-pat:
         description: "Github Personal Access Token (PAT) that can trigger workflow-dispatch"
