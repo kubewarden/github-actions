@@ -1,0 +1,49 @@
+name: Build and release a Kubewarden policy written in Rego
+
+on:
+  workflow_call:
+    inputs:
+      oci-target:
+        type: string
+        required: true
+      policy-type:
+        description: "Type of Rego policy; either 'gatekeeper' or 'opa'"
+        type: string
+        required: true
+    secrets:
+      workflow-pat:
+        description: "Github Personal Access Token (PAT) that can trigger workflow-dispatch"
+        required: true
+        default: ""
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Install dependencies
+        uses: kubewarden/github-actions/policy-gh-action-dependencies@v1
+      -
+        name: Install opa
+        uses: kubewarden/github-actions/opa-installer@v1
+      -
+        uses: actions/checkout@v2
+      -
+        name: Build policy
+        run: |
+          make policy.wasm
+      -
+        name: Annotate policy
+        run: |
+          make annotated-policy.wasm
+      -
+        name: Run e2e tests
+        run: |
+          make e2e-tests
+      -
+        name: Release
+        uses: kubewarden/github-actions/policy-release@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          oci-target: ${{ inputs.oci-target }}
+          workflow-pat: ${{ secrets.workflow-pat }}
