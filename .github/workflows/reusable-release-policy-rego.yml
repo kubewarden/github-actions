@@ -10,7 +10,6 @@ on:
       workflow-pat:
         description: "Github Personal Access Token (PAT) that can trigger workflow-dispatch"
         required: true
-        default: ""
 
 jobs:
   release:
