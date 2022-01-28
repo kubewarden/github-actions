@@ -1,0 +1,19 @@
+name: Tests and linters
+
+on:
+  workflow_call:
+    inputs: {}
+    secrets: {}
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        uses: actions/checkout@v2
+      -
+        name: Install opa
+        uses: kubewarden/github-actions/opa-installer@v1
+      -
+        name: Run unit tests
+        run: make test

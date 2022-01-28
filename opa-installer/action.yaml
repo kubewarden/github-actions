@@ -1,0 +1,26 @@
+name: 'opa-installer'
+description: 'Install opa and add it to PATH'
+branding:
+  icon: 'package'
+  color: 'blue'
+inputs:
+  opa-version:
+    description: 'opa release to be installed'
+    required: false
+    default: v0.32.0
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: |
+        #!/bin/bash
+        set -e
+
+        INSTALL_DIR=$HOME/.opa
+
+        mkdir -p $INSTALL_DIR
+
+        curl -sL https://github.com/open-policy-agent/opa/releases/download/${{ inputs.opa-version }}/opa_linux_amd64_static -o $INSTALL_DIR/opa
+
+        chmod 755 $INSTALL_DIR/opa
+        echo $INSTALL_DIR >> $GITHUB_PATH
