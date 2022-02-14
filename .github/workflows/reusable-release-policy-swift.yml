@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v2
       -
         name: Build release
-        uses: swiftwasm/swiftwasm-action@v5.3
+        uses: swiftwasm/swiftwasm-action@v5.5
         with:
           shell-action: swift build -c release --triple wasm32-unknown-wasi --build-path build
       -
