@@ -22,7 +22,7 @@ jobs:
         name: Install opa
         uses: kubewarden/github-actions/opa-installer@v1
       -
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       -
         name: Build policy
         run: |
