@@ -87,3 +87,4 @@ runs:
       with:
         USERNAME: chimera-kube-bot
         PAT: ${{ inputs.workflow-pat }}
+        OCITARGET: ${{ inputs.oci-target }}
