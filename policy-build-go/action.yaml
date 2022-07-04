@@ -14,7 +14,7 @@ inputs:
     default: policy.wasm
   tinygo-version:
     required: true
-    default: 0.18.0
+    default: 0.24.0
 runs:
   using: "composite"
   steps:
