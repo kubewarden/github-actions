@@ -1,0 +1,121 @@
+name: "Setup Kubewarden cluster"
+description: "Create a K3d cluster with Kubewarden installed with Telemetry infrastructure installed"
+author: "Kubewarden"
+
+inputs:
+  controller-image-repository:
+    description: "Define the controller container image repository"
+    type: string
+    required: false
+    default: ""
+  controller-image-tag:
+    description: "Define the controller container image tag"
+    type: string
+    required: false
+    default: ""
+  controller-container-image-artifact:
+    description: "Load the controller image used in the deployment from local artifact"
+    type: string
+    required: false
+    default: ""
+  policy-server-repository:
+    description: "Define the policy server container image tag"
+    type: string
+    required: false
+    default: "ghcr.io/kubewarden/policy-server"
+  policy-server-tag:
+    description: "Define the policy server container image tag"
+    type: string
+    required: false
+    default: "v0.2.5"
+  policy-server-container-image-artifact:
+    description: "Load the policy server image used in the deployment from local artifact"
+    required: false
+    type: string
+    default: ""
+  cluster-name:
+    description: "K3d cluster name"
+    required: false
+    type: string
+    default: "kubewarden-test-cluster"
+
+runs:
+  using: "composite"
+  steps:
+    -
+      name: "debug"
+      shell: bash
+      run: |
+        echo ${{ inputs.controller-image-repository }}
+        echo ${{ inputs.controller-image-tag }}
+        echo ${{ inputs.controller-container-image-artifact }}
+    -
+      name: "Delete previous Kubernetes cluster"
+      run: |
+        k3d cluster delete ${{ inputs.cluster-name }}
+      shell: bash
+    -
+      uses: AbsaOSS/k3d-action@v1.6.2
+      name: "Create Kubernetes cluster"
+      with:
+        cluster-name: ${{ inputs.cluster-name }}
+    -
+      name: "Download Kubewarden controller container image artifact"
+      if: ${{ inputs.controller-container-image-artifact != '' }}
+      uses: actions/download-artifact@v3
+      with:
+        name: ${{inputs.controller-container-image-artifact}}
+        path: /tmp
+    -
+      name: "Load Kubewarden controller container image into K3D cluster"
+      if: ${{ inputs.controller-container-image-artifact != '' }}
+      run: |
+        k3d image import /tmp/${{inputs.controller-container-image-artifact}}.tar -c ${{ inputs.cluster-name }}
+      shell: bash
+    -
+      name: "Download policy server container image artifact"
+      if: ${{ inputs.policy-server-container-image-artifact != '' }}
+      uses: actions/download-artifact@v3
+      with:
+        name: ${{inputs.policy-server-container-image-artifact}}
+        path: /tmp
+    - name: "Load Policy Server container image into K3D cluster"
+      if: ${{ inputs.policy-server-container-image-artifact != '' }}
+      run: |
+        k3d image import /tmp/${{inputs.policy-server-container-image-artifact}}.tar -c ${{ inputs.cluster-name }}
+      shell: bash
+    - name: "Wait cluster to be ready"
+      run: kubectl wait --for=condition=Ready nodes --all
+      shell: bash
+    - name: "Install Helm"
+      uses: azure/setup-helm@v3
+      with:
+        version: 'latest' # default is latest stable
+      id: install
+    - name: "Install cert-manager and wait to be ready"
+      run: |
+        kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.5.3/cert-manager.yaml
+        kubectl wait --for=condition=Available deployment --timeout=3m -n cert-manager --all
+      shell: bash
+    - name: "Install Kubewarden Helm repository"
+      run: helm repo add --force-update kubewarden https://charts.kubewarden.io
+      shell: bash
+    - name: "Install Kubewarden CRDS"
+      run: helm upgrade --install --wait --namespace kubewarden --create-namespace kubewarden-crds kubewarden/kubewarden-crds
+      shell: bash
+    - name: "Install Kubewarden controller"
+      run: |
+        helm upgrade --install --wait \
+          --set image.repository=${{ inputs.controller-image-repository }} \
+          --set image.tag=${{ inputs.controller-image-tag }} \
+          --set policyServer.image.repository=${{ inputs.policy-server-repository }} \
+          --set policyServer.image.tag=${{ inputs.policy-server-tag }} \
+          --namespace kubewarden \
+          kubewarden-controller kubewarden/kubewarden-controller
+      shell: bash
+    - name: "Install Kubewarden defaults"
+      run: |
+        helm upgrade --install --wait \
+          --namespace kubewarden \
+          kubewarden-defaults kubewarden/kubewarden-defaults
+      shell: bash
