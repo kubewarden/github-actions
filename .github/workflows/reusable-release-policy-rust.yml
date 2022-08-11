@@ -24,7 +24,7 @@ jobs:
         name: Build and annotate policy
         uses: kubewarden/github-actions/policy-build-rust@v1
         with:
-          input-wasm: target/wasm32-unknown-unknown/release/${{ inputs.input-wasm }}.wasm
+          input-wasm: target/wasm32-wasi/release/${{ inputs.input-wasm }}.wasm
       -
         name: Run e2e tests
         run: |

@@ -23,13 +23,13 @@ runs:
       with:
         profile: minimal
         toolchain: stable
-        target: wasm32-unknown-unknown
+        target: wasm32-wasi
     -
       name: Build Wasm module
       uses: actions-rs/cargo@v1
       with:
         command: build
-        args: --target=wasm32-unknown-unknown --release
+        args: --target=wasm32-wasi --release
     -
       name: Annotate Wasm module
       shell: bash
