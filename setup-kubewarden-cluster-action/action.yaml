@@ -55,7 +55,7 @@ runs:
         k3d cluster delete ${{ inputs.cluster-name }}
       shell: bash
     -
-      uses: AbsaOSS/k3d-action@v1.6.2
+      uses: AbsaOSS/k3d-action@v2.3.0
       name: "Create Kubernetes cluster"
       with:
         cluster-name: ${{ inputs.cluster-name }}
