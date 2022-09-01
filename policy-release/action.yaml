@@ -57,29 +57,21 @@ runs:
         echo Keyless signing of policy using cosign
         cosign sign ${IMMUTABLE_REF}
     -
-      name: Create Release
+      name: Create release
       if: ${{ startsWith(github.ref, 'refs/tags/') }}
-      id: create_release
-      uses: actions/create-release@v1
+      uses: softprops/action-gh-release@v1
       env:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
       with:
         tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        name: Release ${{ github.ref_name }}
         draft: false
         prerelease: ${{ contains(github.ref, '-alpha') || contains(github.ref, '-beta') || contains(github.ref, '-rc') }}
-    -
-      name: Upload Release Asset
-      if: ${{ startsWith(github.ref, 'refs/tags/') }}
-      id: upload-release-asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ inputs.annotated-wasm }}
-        asset_name: policy.wasm
-        asset_content_type: application/wasm
+        files: |
+          policy.wasm
+          policy-sbom.spdx.json
+          policy-sbom.spdx.cert
+          policy-sbom.spdx.sig
     -
       name: Notify policy-hub
       if: ${{ inputs.workflow-pat != '' && startsWith(github.ref, 'refs/tags/') && !(contains(github.ref, '-alpha') || contains(github.ref, '-beta') || contains(github.ref, '-rc')) }}

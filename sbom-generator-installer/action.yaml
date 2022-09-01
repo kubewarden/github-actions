@@ -1,0 +1,25 @@
+name: 'sbom-generator-installer'
+description: 'Install a tool to generate the SBOM file using SPDX format'
+branding:
+  icon: 'package'
+  color: 'blue'
+inputs:
+  sbom-generator-version:
+    description: 'spdx-sbom-generator release to be installed'
+    required: false
+    default: v0.0.15
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: |
+        #!/bin/bash
+        set -e
+
+        INSTALL_DIR=$HOME/.sbom-generator
+        mkdir -p $INSTALL_DIR
+
+        curl -L -O https://github.com/opensbom-generator/spdx-sbom-generator/releases/download/${{ inputs.sbom-generator-version }}/spdx-sbom-generator-${{ inputs.sbom-generator-version }}-linux-amd64.tar.gz
+        tar -xf spdx-sbom-generator-${{ inputs.sbom-generator-version }}-linux-amd64.tar.gz --directory $INSTALL_DIR
+
+        echo $INSTALL_DIR >> $GITHUB_PATH

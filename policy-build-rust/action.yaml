@@ -35,3 +35,36 @@ runs:
       shell: bash
       run: |
         kwctl annotate -m ${{ inputs.metadata-file }} -o annotated-policy.wasm ${{ inputs.input-wasm }}
+    -
+      name: Install SBOM generator tool
+      uses: kubewarden/github-actions/sbom-generator-installer@v1
+    -
+      name: Generate the SBOM files
+      shell: bash
+      run: |
+        spdx-sbom-generator -f json
+
+        # SBOM files should have "sbom" in the name due the CLO monitor
+        # https://clomonitor.io/docs/topics/checks/#software-bill-of-materials-sbom
+        mv bom-cargo.json policy-sbom.spdx.json
+    -
+      name: Install cosign
+      uses: sigstore/cosign-installer@main
+    -
+      name: Sign BOM file
+      shell: bash
+      run: |
+        cosign sign-blob --output-certificate policy-sbom.spdx.cert \
+          --output-signature policy-sbom.spdx.sig \
+          policy-sbom.spdx.json
+      env:
+        COSIGN_EXPERIMENTAL: 1
+    -
+      name:  Upload policy SBOM files
+      uses: actions/upload-artifact@v2
+      with:
+        name: policy-sbom
+        path: |
+          policy-sbom.spdx.json
+          policy-sbom.spdx.cert
+          policy-sbom.spdx.sig
