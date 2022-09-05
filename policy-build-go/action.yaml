@@ -60,7 +60,7 @@ runs:
         COSIGN_EXPERIMENTAL: 1
     -
       name:  Upload policy SBOM files
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: policy-sbom
         path: |
