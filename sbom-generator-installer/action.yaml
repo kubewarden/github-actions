@@ -5,9 +5,13 @@ branding:
   color: 'blue'
 inputs:
   sbom-generator-version:
-    description: 'spdx-sbom-generator release to be installed'
+    description: 'spdx-sbom-generator version to be installed'
     required: false
     default: v0.0.15
+  sbom-generator-arch:
+    description: 'spdx-sbom-generator arch to be installed'
+    required: false
+    default: "linux-amd64"
 runs:
   using: "composite"
   steps:
@@ -19,7 +23,7 @@ runs:
         INSTALL_DIR=$HOME/.sbom-generator
         mkdir -p $INSTALL_DIR
 
-        curl -L -O https://github.com/opensbom-generator/spdx-sbom-generator/releases/download/${{ inputs.sbom-generator-version }}/spdx-sbom-generator-${{ inputs.sbom-generator-version }}-linux-amd64.tar.gz
-        tar -xf spdx-sbom-generator-${{ inputs.sbom-generator-version }}-linux-amd64.tar.gz --directory $INSTALL_DIR
+        curl -L -O https://github.com/opensbom-generator/spdx-sbom-generator/releases/download/${{ inputs.sbom-generator-version }}/spdx-sbom-generator-${{ inputs.sbom-generator-version }}-${{ inputs.sbom-generator-arch}}.tar.gz
+        tar -xf spdx-sbom-generator-${{ inputs.sbom-generator-version }}-${{ inputs.sbom-generator-arch }}.tar.gz --directory $INSTALL_DIR
 
         echo $INSTALL_DIR >> $GITHUB_PATH
