@@ -38,6 +38,11 @@ inputs:
     required: false
     type: string
     default: "kubewarden-test-cluster"
+  cluster-args:
+    description: "K3d cluster arguments"
+    required: false
+    type: string
+    default: "--agents 1"
 
 runs:
   using: "composite"
@@ -59,6 +64,7 @@ runs:
       name: "Create Kubernetes cluster"
       with:
         cluster-name: ${{ inputs.cluster-name }}
+        args: ${{ inputs.cluster-args }}
     -
       name: "Download Kubewarden controller container image artifact"
       if: ${{ inputs.controller-container-image-artifact != '' }}
