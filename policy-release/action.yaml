@@ -11,10 +11,6 @@ inputs:
   oci-target:
     required: true
     type: string
-  workflow-pat:
-    required: false
-    type: string
-    default: ""
   GITHUB_TOKEN:
     required: true
     type: string
@@ -72,10 +68,3 @@ runs:
           policy-sbom.spdx.json
           policy-sbom.spdx.cert
           policy-sbom.spdx.sig
-    -
-      name: Notify policy-hub
-      if: ${{ inputs.workflow-pat != '' && startsWith(github.ref, 'refs/tags/') && !(contains(github.ref, '-alpha') || contains(github.ref, '-beta') || contains(github.ref, '-rc')) }}
-      uses: kubewarden/notify-policy-hub@main
-      with:
-        USERNAME: chimera-kube-bot
-        PAT: ${{ inputs.workflow-pat }}
