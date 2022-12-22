@@ -6,10 +6,6 @@ on:
       oci-target:
         type: string
         required: true
-    secrets:
-      workflow-pat:
-        description: "Github Personal Access Token (PAT) that can trigger workflow-dispatch"
-        required: true
 
 jobs:
   release:
@@ -31,4 +27,3 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           oci-target: ${{ inputs.oci-target }}
-          workflow-pat: ${{ secrets.workflow-pat }}
