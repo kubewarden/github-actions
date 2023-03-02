@@ -17,3 +17,6 @@ runs:
       uses: mig4/setup-bats@v1
       with:
         bats-version: 1.5.0
+    -
+      name: Install SBOM generator tool
+      uses: kubewarden/github-actions/sbom-generator-installer@v1

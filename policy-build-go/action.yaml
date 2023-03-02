@@ -33,9 +33,6 @@ runs:
       run: |
         tinygo build -o ${{ inputs.wasm-binary }} -target=wasi -no-debug .
     -
-      name: Install SBOM generator tool
-      uses: kubewarden/github-actions/sbom-generator-installer@v1
-    -
       name: Generate the SBOM files
       shell: bash
       run: |
