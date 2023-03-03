@@ -8,7 +8,7 @@ runs:
   steps:
     -
       name: Install cosign
-      uses: sigstore/cosign-installer@main
+      uses: sigstore/cosign-installer@v2.8.1
     -
       name: Install kwctl
       uses: kubewarden/github-actions/kwctl-installer@v1
@@ -17,3 +17,6 @@ runs:
       uses: mig4/setup-bats@v1
       with:
         bats-version: 1.5.0
+    -
+      name: Install SBOM generator tool
+      uses: kubewarden/github-actions/sbom-generator-installer@v1
