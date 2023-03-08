@@ -6,6 +6,21 @@ on:
     secrets: {}
 
 jobs:
+  version-check:
+    name: Check Cargo.toml version
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download source code
+        uses: actions/checkout@v2
+      - name: Check cargo file version
+        run: |
+          CARGO_VERSION=$(sed  -n 's,^version = \"\(.*\)\",\1,p' Cargo.toml)
+          TAG_VERSION=$(echo ${{ github.ref_name }} | sed 's/v//')
+          if [ "$CARGO_VERSION" != "$TAG_VERSION" ];then
+              echo "::error title=Invalid Cargo.toml version::Cargo.toml version does not match the tag version"
+              exit 1
+          fi
   check:
     name: Cargo check
     runs-on: ubuntu-latest
