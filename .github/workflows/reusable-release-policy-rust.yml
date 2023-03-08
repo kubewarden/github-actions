@@ -32,5 +32,3 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           oci-target: ${{ inputs.oci-target }}
-          annotated-wasm: annotated-policy.wasm
-
