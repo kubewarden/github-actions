@@ -2,7 +2,12 @@ name: Tests and linters
 
 on:
   workflow_call:
-    inputs: {}
+    inputs:
+      artifacthub:
+        description: 'check artifacthub-pkg.yml for submission to ArtifactHub'
+        required: false
+        type: boolean
+        default: false
     secrets: {}
 
 jobs:
@@ -21,6 +26,24 @@ jobs:
               echo "::error title=Invalid Cargo.toml version::Cargo.toml version does not match the tag version"
               exit 1
           fi
+  check-artifacthub:
+    if: ${{ inputs.artifacthub }}
+    runs-on: ubuntu-latest
+    steps:
+      -
+        uses: actions/checkout@v3
+      -
+        name: Install kwctl
+        uses: kubewarden/github-actions/kwctl-installer@v1
+      -
+        id: calculate-version
+        run: echo "version=$(sed  -n 's,^version = \"\(.*\)\",\1,p' Cargo.toml)" >> $GITHUB_OUTPUT
+        shell: bash
+      -
+        name: Check that artifacthub-pkg.yml is up-to-date
+        uses: kubewarden/github-actions/check-artifacthub@v1
+        with:
+          version: ${{ steps.calculate-version.outputs.version }}
   check:
     name: Cargo check
     runs-on: ubuntu-latest
