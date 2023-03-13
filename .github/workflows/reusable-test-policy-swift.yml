@@ -2,7 +2,12 @@ name: Tests and linters
 
 on:
   workflow_call:
-    inputs: {}
+    inputs:
+      artifacthub:
+        description: 'check artifacthub-pkg.yml for submission to ArtifactHub'
+        required: false
+        type: boolean
+        default: false
     secrets: {}
 
 jobs:
@@ -15,3 +20,21 @@ jobs:
         uses: swiftwasm/swiftwasm-action@v5.7
         with:
           shell-action: carton test
+  check-artifacthub:
+    if: ${{ inputs.artifacthub }}
+    runs-on: ubuntu-latest
+    steps:
+      -
+        uses: actions/checkout@v3
+      -
+        name: Install kwctl
+        uses: kubewarden/github-actions/kwctl-installer@v1
+      -
+        id: calculate-version
+        run: echo "version=$(echo ${{ github.ref_name }} | sed 's/v//')" >> $GITHUB_OUTPUT
+        shell: bash
+      -
+        name: Check that artifacthub-pkg.yml is up-to-date
+        uses: kubewarden/github-actions/check-artifacthub@v1
+        with:
+          version: ${{ steps.calculate-version.outputs.version }}
