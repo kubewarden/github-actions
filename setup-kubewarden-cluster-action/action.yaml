@@ -26,8 +26,7 @@ inputs:
   policy-server-tag:
     description: "Define the policy server container image tag"
     type: string
-    required: false
-    default: "v0.2.5"
+    required: true
   policy-server-container-image-artifact:
     description: "Load the policy server image used in the deployment from local artifact"
     required: false
