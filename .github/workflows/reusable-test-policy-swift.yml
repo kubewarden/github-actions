@@ -28,13 +28,13 @@ jobs:
         uses: actions/checkout@v3
       -
         name: Install kwctl
-        uses: kubewarden/github-actions/kwctl-installer@v1
+        uses: kubewarden/github-actions/kwctl-installer@v2
       -
         id: calculate-version
         run: echo "version=$(echo ${{ github.ref_name }} | sed 's/v//')" >> $GITHUB_OUTPUT
         shell: bash
       -
         name: Check that artifacthub-pkg.yml is up-to-date
-        uses: kubewarden/github-actions/check-artifacthub@v1
+        uses: kubewarden/github-actions/check-artifacthub@v2
         with:
           version: ${{ steps.calculate-version.outputs.version }}
