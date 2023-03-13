@@ -106,7 +106,7 @@ runs:
     - name: "Install Kubewarden Helm repository"
       run: helm repo add --force-update kubewarden https://charts.kubewarden.io
       shell: bash
-    - name: "Install Kubewarden CRDS"
+    - name: "Install Kubewarden CRDs"
       run: helm upgrade --install --wait --namespace kubewarden --create-namespace kubewarden-crds kubewarden/kubewarden-crds
       shell: bash
     - name: "Install Kubewarden controller"
