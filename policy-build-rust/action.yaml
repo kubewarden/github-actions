@@ -10,7 +10,8 @@ inputs:
     default: metadata.yml
   input-wasm:
     description: 'path to the wasm file to be annotated'
-    required: true
+    required: false
+    default: policy.wasm
 runs:
   using: "composite"
   steps:
@@ -30,6 +31,11 @@ runs:
       with:
         command: build
         args: --target=wasm32-wasi --release
+    -
+      name: Rename Wasm module
+      shell: bash
+      run: |
+        cp target/wasm32-wasi/release/*.wasm ${{ inputs.input-wasm }}
     -
       name: Annotate Wasm module
       shell: bash
