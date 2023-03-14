@@ -10,7 +10,7 @@ inputs:
     default: metadata.yml
   wasm-binary:
     description: 'path to the wasm file to be annotated'
-    required: true
+    required: false
     default: policy.wasm
   tinygo-version:
     required: true
