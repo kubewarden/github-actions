@@ -40,3 +40,4 @@ jobs:
         uses: kubewarden/github-actions/check-artifacthub@v2
         with:
           version: ${{ steps.calculate-version.outputs.version }}
+          check_version: false # must match a git tag that hasn't been created yet, so let's ignore until then
