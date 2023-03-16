@@ -32,9 +32,9 @@ jobs:
     steps:
       -
         uses: actions/checkout@v3
-      -
-        name: Install kwctl
-        uses: kubewarden/github-actions/kwctl-installer@v2
+        with:
+          # until https://github.com/actions/checkout/pull/579 is released
+          fetch-depth: 0
       -
         id: calculate-version
         run: echo "version=$(sed  -n 's,^version = \"\(.*\)\",\1,p' Cargo.toml)" >> $GITHUB_OUTPUT

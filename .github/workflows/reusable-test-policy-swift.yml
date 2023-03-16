@@ -26,15 +26,19 @@ jobs:
     steps:
       -
         uses: actions/checkout@v3
+        with:
+          # until https://github.com/actions/checkout/pull/579 is released
+          fetch-depth: 0
       -
         name: Install kwctl
         uses: kubewarden/github-actions/kwctl-installer@v2
       -
         id: calculate-version
-        run: echo "version=$(echo ${{ github.ref_name }} | sed 's/v//')" >> $GITHUB_OUTPUT
+        run: echo "version=$(git describe --tags --abbrev=0 | cut -c2-)" >> $GITHUB_OUTPUT
         shell: bash
       -
         name: Check that artifacthub-pkg.yml is up-to-date
         uses: kubewarden/github-actions/check-artifacthub@v2
         with:
           version: ${{ steps.calculate-version.outputs.version }}
+          check_version: false # must match a git tag that hasn't been created yet, so let's ignore until then

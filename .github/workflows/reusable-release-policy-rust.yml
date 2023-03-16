@@ -6,6 +6,11 @@ on:
       oci-target:
         type: string
         required: true
+      artifacthub:
+        description: 'check artifacthub-pkg.yml for submission to ArtifactHub'
+        required: false
+        type: boolean
+        default: true
 
 jobs:
   release:
@@ -14,6 +19,23 @@ jobs:
       -
         name: Install dependencies
         uses: kubewarden/github-actions/policy-gh-action-dependencies@v2
+      -
+        uses: actions/checkout@v3
+        with:
+          # until https://github.com/actions/checkout/pull/579 is released
+          fetch-depth: 0
+      -
+        id: calculate-version
+        if: ${{ inputs.artifacthub }}
+        # obtain latest tag. Here it must be the current release tag
+        run: echo "version=$(git describe --tags --abbrev=0 | cut -c2-)" >> $GITHUB_OUTPUT
+        shell: bash
+      -
+        name: Check that artifacthub-pkg.yml is up-to-date
+        if: ${{ inputs.artifacthub }}
+        uses: kubewarden/github-actions/check-artifacthub@v2
+        with:
+          version: ${{ steps.calculate-version.outputs.version }}
       -
         name: Build and annotate policy
         uses: kubewarden/github-actions/policy-build-rust@v2
