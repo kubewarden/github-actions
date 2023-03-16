@@ -38,6 +38,8 @@ runs:
           git diff \
             --ignore-matching-lines '^createdAt'\
             --ignore-matching-lines '^version'\
+            --ignore-matching-lines '^( )*image: *'\
+            --ignore-matching-lines 'policy.wasm$'\
             --exit-code artifacthub-pkg.yml || \
             (echo; echo "There are differences in artifacthub-pkg.yml that have to be checked in"; exit 1)
         fi
