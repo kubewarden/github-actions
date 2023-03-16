@@ -41,7 +41,7 @@ jobs:
         uses: kubewarden/github-actions/kwctl-installer@v2
       -
         id: calculate-version
-        run: echo "version=$(echo ${{ github.ref_name }} | sed 's/v//')" >> $GITHUB_OUTPUT
+        run: echo "version=$(git describe --tags --abbrev=0 | cut -c2-)" >> $GITHUB_OUTPUT
         shell: bash
       -
         name: Check that artifacthub-pkg.yml is up-to-date
