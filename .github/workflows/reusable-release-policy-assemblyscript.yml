@@ -23,6 +23,9 @@ jobs:
         uses: kubewarden/github-actions/policy-gh-action-dependencies@v2
       -
         uses: actions/checkout@v3
+        with:
+          # until https://github.com/actions/checkout/pull/579 is released
+          fetch-depth: 0
       -
         id: calculate-version
         if: ${{ inputs.artifacthub }}

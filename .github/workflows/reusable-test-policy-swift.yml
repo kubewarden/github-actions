@@ -26,6 +26,9 @@ jobs:
     steps:
       -
         uses: actions/checkout@v3
+        with:
+          # until https://github.com/actions/checkout/pull/579 is released
+          fetch-depth: 0
       -
         name: Install kwctl
         uses: kubewarden/github-actions/kwctl-installer@v2
