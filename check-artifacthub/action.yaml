@@ -8,6 +8,10 @@ inputs:
     description: 'version string to use in artifacthub-plg.yml'
     required: true
     type: string
+  check_version:
+    description: 'check version string in comparison'
+    default: true
+    type: bool
 runs:
   using: "composite"
   steps:
@@ -20,7 +24,20 @@ runs:
       run: |
         rm artifacthub-pkg.yml # force recreation of file
         make artifacthub-pkg.yml VERSION=${{ inputs.version }}
-        git diff \
-          --ignore-matching-lines '^createdAt'\
-          --exit-code artifacthub-pkg.yml || \
-          (echo; echo "There are differences in artifacthub-pkg.yml that have to be checked in"; exit 1)
+        # ignore createdAt: if there's a new file it will always be newer
+        if ${{ inputs.check_version }}; then
+          # check version: version must match a known version (from Cargo.toml,
+          # or a present git tag)
+          git diff \
+            --ignore-matching-lines '^createdAt'\
+            --exit-code artifacthub-pkg.yml || \
+            (echo; echo "There are differences in artifacthub-pkg.yml that have to be checked in.\nIf version is outdated, run \`make --always-make artifacthub-pkg.yml VERSION=<new tag>\`"; exit 1)
+        else
+          # don't check_version: version must match a future tag that hasn't been
+          # created yet, so let's not check for it
+          git diff \
+            --ignore-matching-lines '^createdAt'\
+            --ignore-matching-lines '^version'\
+            --exit-code artifacthub-pkg.yml || \
+            (echo; echo "There are differences in artifacthub-pkg.yml that have to be checked in"; exit 1)
+        fi
