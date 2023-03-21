@@ -58,7 +58,7 @@ jobs:
       -
         name: Annotate Wasm module
         run: |
-          kwctl annotate -m metadata.yml -o annotated-policy.wasm policy.wasm
+          make annotated-policy.wasm
       -
         name: Run e2e tests
         run: |
