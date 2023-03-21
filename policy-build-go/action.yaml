@@ -4,14 +4,6 @@ branding:
   icon: 'package'
   color: 'blue'
 inputs:
-  metadata-file:
-    description: 'name of the metata file'
-    required: false
-    default: metadata.yml
-  wasm-binary:
-    description: 'path to the wasm file to be annotated'
-    required: false
-    default: policy.wasm
   tinygo-version:
     required: true
     default: 0.26.0
@@ -45,7 +37,7 @@ runs:
       name: Annotate Wasm module
       shell: bash
       run: |
-        kwctl annotate -m ${{ inputs.metadata-file }} -o annotated-policy.wasm ${{ inputs.wasm-binary }}
+        make annotated-policy.wasm
     -
       name: Sign BOM file
       shell: bash
