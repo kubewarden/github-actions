@@ -23,7 +23,7 @@ runs:
       name: Build Wasm module
       shell: bash
       run: |
-        tinygo build -o ${{ inputs.wasm-binary }} -target=wasi -no-debug .
+        tinygo build -o policy.wasm -target=wasi -no-debug .
     -
       name: Generate the SBOM files
       shell: bash
