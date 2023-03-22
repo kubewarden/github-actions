@@ -29,7 +29,7 @@ jobs:
     steps:
       - uses: actions/setup-go@v4
         with:
-          go-version: 'latest'
+          go-version: 'stable'
       - uses: actions/checkout@v3
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
@@ -47,14 +47,14 @@ jobs:
           fetch-depth: 0
       -
         name: Install kwctl
-        uses: kubewarden/github-actions/kwctl-installer@v3.0.2
+        uses: kubewarden/github-actions/kwctl-installer@v3.0.3
       -
         id: calculate-version
         run: echo "version=$(git describe --tags --abbrev=0 | cut -c2-)" >> $GITHUB_OUTPUT
         shell: bash
       -
         name: Check that artifacthub-pkg.yml is up-to-date
-        uses: kubewarden/github-actions/check-artifacthub@v3.0.2
+        uses: kubewarden/github-actions/check-artifacthub@v3.0.3
         with:
           version: ${{ steps.calculate-version.outputs.version }}
           check_version: false # must match a git tag that hasn't been created yet, so let's ignore until then
