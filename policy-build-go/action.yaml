@@ -11,7 +11,21 @@ runs:
   using: "composite"
   steps:
     -
-      name: Checkname: Generate the SBOM files
+      name: Checkout code
+      uses: actions/checkout@v3
+    -
+      name: Install tinygo
+      shell: bash
+      run: |
+        wget https://github.com/tinygo-org/tinygo/releases/download/v${{ inputs.tinygo-version }}/tinygo_${{ inputs.tinygo-version }}_amd64.deb
+        sudo dpkg -i tinygo_${{ inputs.tinygo-version }}_amd64.deb
+    -
+      name: Build Wasm module
+      shell: bash
+      run: |
+        tinygo build -o policy.wasm -target=wasi -no-debug .
+    -
+      name: Generate the SBOM files
       shell: bash
       run: |
         spdx-sbom-generator -f json
