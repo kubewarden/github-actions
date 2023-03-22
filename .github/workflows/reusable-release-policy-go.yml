@@ -18,7 +18,7 @@ jobs:
     steps:
       -
         name: Install dependencies
-        uses: kubewarden/github-actions/policy-gh-action-dependencies@v3.0.2
+        uses: kubewarden/github-actions/policy-gh-action-dependencies@v3.0.3
       -
         uses: actions/checkout@v3
         with:
@@ -33,19 +33,19 @@ jobs:
       -
         name: Check that artifacthub-pkg.yml is up-to-date
         if: ${{ inputs.artifacthub }}
-        uses: kubewarden/github-actions/check-artifacthub@v3.0.2
+        uses: kubewarden/github-actions/check-artifacthub@v3.0.3
         with:
           version: ${{ steps.calculate-version.outputs.version }}
       -
         name: Build and annotate policy
-        uses: kubewarden/github-actions/policy-build-go@v3.0.2
+        uses: kubewarden/github-actions/policy-build-go@v3.0.3
       -
         name: Run e2e tests
         run: |
           make e2e-tests
       -
         name: Release
-        uses: kubewarden/github-actions/policy-release@v3.0.2
+        uses: kubewarden/github-actions/policy-release@v3.0.3
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           oci-target: ${{ inputs.oci-target }}
