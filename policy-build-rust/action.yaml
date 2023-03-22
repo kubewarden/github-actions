@@ -3,15 +3,6 @@ description: 'Build a rust policy using rust'
 branding:
   icon: 'package'
   color: 'blue'
-inputs:
-  metadata-file:
-    description: 'name of the metata file'
-    required: false
-    default: metadata.yml
-  input-wasm:
-    description: 'path to the wasm file to be annotated'
-    required: false
-    default: policy.wasm
 runs:
   using: "composite"
   steps:
@@ -35,12 +26,12 @@ runs:
       name: Rename Wasm module
       shell: bash
       run: |
-        cp target/wasm32-wasi/release/*.wasm ${{ inputs.input-wasm }}
+        cp target/wasm32-wasi/release/*.wasm policy.wasm
     -
       name: Annotate Wasm module
       shell: bash
       run: |
-        kwctl annotate -m ${{ inputs.metadata-file }} -o annotated-policy.wasm ${{ inputs.input-wasm }}
+        make annotated-policy.wasm
     -
       name: Generate the SBOM files
       shell: bash
