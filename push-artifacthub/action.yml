@@ -18,7 +18,9 @@ runs:
 
         git checkout artifacthub || git checkout --orphan artifacthub
         git reset HEAD -- .
-        git add artifacthub-pkg.yml artifacthub-repo.yml
+        git add artifacthub-pkg.yml
+        git add artifacthub-repo.yml
+        git add README.md # used if artifacthub-pkg.yml.readme is missing
         VERSION=$(sed --posix -n 's,^version: \(.*\),\1,p' artifacthub-pkg.yml)
         git commit -m "Update Artifact Hub files, version $VERSION"
         git push --force origin artifacthub
