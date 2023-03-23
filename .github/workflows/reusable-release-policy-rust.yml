@@ -26,13 +26,14 @@ jobs:
           fetch-depth: 0
       -
         id: calculate-version
-        if: ${{ inputs.artifacthub }}
-        # obtain latest tag. Here it must be the current release tag
+        # skip when releasing :latest from main, versions will not match
+        if: startsWith(github.ref, 'refs/tags/v') && inputs.artifacthub
         run: echo "version=$(git describe --tags --abbrev=0 | cut -c2-)" >> $GITHUB_OUTPUT
         shell: bash
       -
         name: Check that artifacthub-pkg.yml is up-to-date
-        if: ${{ inputs.artifacthub }}
+        # skip when releasing :latest from main, versions will not match
+        if: startsWith(github.ref, 'refs/tags/v') && inputs.artifacthub
         uses: kubewarden/github-actions/check-artifacthub@v3.0.5
         with:
           version: ${{ steps.calculate-version.outputs.version }}
@@ -50,7 +51,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           oci-target: ${{ inputs.oci-target }}
   push-artifacthub:
-    if: ${{ inputs.artifacthub }}
+    # skip when releasing :latest from main, versions will not match
+    if: startsWith(github.ref, 'refs/tags/v') && inputs.artifacthub
     needs: release
     permissions:
       # Give the default GITHUB_TOKEN write permission to commit and push the
