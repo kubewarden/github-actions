@@ -70,3 +70,15 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           oci-target: ${{ inputs.oci-target }}
+  push-artifacthub:
+    if: ${{ inputs.artifacthub }}
+    needs: release
+    permissions:
+      # Give the default GITHUB_TOKEN write permission to commit and push the
+      # added or changed files to the repository.
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Push artifacthub files to artifacthub branch
+        uses: kubewarden/github-actions/push-artifacthub@v3.0.5
