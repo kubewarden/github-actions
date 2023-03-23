@@ -1,0 +1,24 @@
+name: 'kubewarden-check-artifacthub'
+description: 'Push artifacthub files to artifacthub branch'
+branding:
+  icon: 'package'
+  color: 'blue'
+runs:
+  using: "composite"
+  steps:
+    -
+      name: Checkout code
+      uses: actions/checkout@v3
+    -
+      name: Check that artifacthub-pkg.yml is up-to-date
+      shell: bash
+      run: |
+        git config user.name "Update artifacthub branch"
+        git config user.email github-actions@github.com
+
+        git checkout artifacthub || git checkout --orphan artifacthub
+        git reset HEAD -- .
+        git add artifacthub-pkg.yml artifacthub-repo.yml
+        VERSION=$(sed --posix -n 's,^version: \(.*\),\1,p' artifacthub-pkg.yml)
+        git commit -m "Update Artifact Hub files, version $VERSION"
+        git push --force origin artifacthub
