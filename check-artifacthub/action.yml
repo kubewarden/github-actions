@@ -29,6 +29,7 @@ runs:
           # check version: version must match a known version (from Cargo.toml,
           # or a present git tag)
           git diff \
+            --ignore-matching-lines '^#' \
             --ignore-matching-lines '^createdAt'\
             --exit-code artifacthub-pkg.yml || \
             (echo; echo "There are differences in artifacthub-pkg.yml that have to be checked in.\nIf version is outdated, run \`make --always-make artifacthub-pkg.yml VERSION=<new tag>\`"; exit 1)
@@ -36,6 +37,7 @@ runs:
           # don't check_version: version must match a future tag that hasn't been
           # created yet, so let's not check for it
           git diff \
+            --ignore-matching-lines '^#' \
             --ignore-matching-lines '^createdAt'\
             --ignore-matching-lines '^version'\
             --ignore-matching-lines '^( )*image: *'\
