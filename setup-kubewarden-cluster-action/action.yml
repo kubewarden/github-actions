@@ -99,7 +99,7 @@ runs:
       id: install
     - name: "Install cert-manager and wait to be ready"
       run: |
-        kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.5.3/cert-manager.yaml
+        kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.yaml
         kubectl wait --for=condition=Available deployment --timeout=3m -n cert-manager --all
       shell: bash
     - name: "Install Kubewarden Helm repository"
