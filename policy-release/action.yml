@@ -36,7 +36,7 @@ runs:
         IMMUTABLE_REF=$(kwctl push -o json ${{ inputs.annotated-wasm }} ${{ inputs.oci-target }}:latest | jq -r .immutable_ref)
 
         echo Keyless signing of policy using cosign
-        cosign sign ${IMMUTABLE_REF}
+        cosign sign --yes ${IMMUTABLE_REF}
     -
       name: Publish Wasm policy artifact to OCI registry with the version tag and 'latest'
       shell: bash
@@ -51,7 +51,7 @@ runs:
         IMMUTABLE_REF=$(kwctl push -o json ${{ inputs.annotated-wasm }} ${{ inputs.oci-target }}:${OCI_TAG} | jq -r .immutable_ref)
 
         echo Keyless signing of policy using cosign
-        cosign sign ${IMMUTABLE_REF}
+        cosign sign --yes ${IMMUTABLE_REF}
     -
       name: Create release
       if: ${{ startsWith(github.ref, 'refs/tags/') }}

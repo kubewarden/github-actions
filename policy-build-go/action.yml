@@ -42,11 +42,9 @@ runs:
       name: Sign BOM file
       shell: bash
       run: |
-        cosign sign-blob --output-certificate policy-sbom.spdx.cert \
+        cosign sign-blob --yes --output-certificate policy-sbom.spdx.cert \
           --output-signature policy-sbom.spdx.sig \
           policy-sbom.spdx.json
-      env:
-        COSIGN_EXPERIMENTAL: 1
     -
       name:  Upload policy SBOM files
       uses: actions/upload-artifact@v3
