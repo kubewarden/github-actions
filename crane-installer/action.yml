@@ -1,0 +1,28 @@
+name: 'crane-installer'
+description: 'Install crane and includes it inside of PATH'
+branding:
+  icon: 'package'
+  color: 'blue'
+inputs:
+  VERSION:
+    description: 'crane release to be installed'
+    required: false
+    default: "0.15.2"
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: |
+        #!/bin/bash
+        set -e
+
+        INSTALL_DIR=$HOME/.crane
+
+        mkdir -p $INSTALL_DIR
+
+        curl -sL https://github.com/google/go-containerregistry/releases/download/v${{ inputs.VERSION }}/go-containerregistry_Linux_x86_64.tar.gz -o $INSTALL_DIR/crane.tar.gz
+        tar xvf $INSTALL_DIR/crane.tar.gz -C $INSTALL_DIR
+        rm $INSTALL_DIR/crane.tar.gz
+
+        echo $INSTALL_DIR >> $GITHUB_PATH
+
