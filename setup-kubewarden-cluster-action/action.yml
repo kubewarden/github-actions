@@ -106,11 +106,11 @@ runs:
       run: helm repo add --force-update kubewarden https://charts.kubewarden.io
       shell: bash
     - name: "Install Kubewarden CRDs"
-      run: helm upgrade --install --wait --namespace kubewarden --create-namespace kubewarden-crds kubewarden/kubewarden-crds
+      run: helm upgrade --install --devel --wait --namespace kubewarden --create-namespace kubewarden-crds kubewarden/kubewarden-crds
       shell: bash
     - name: "Install Kubewarden controller"
       run: |
-        helm upgrade --install --wait \
+        helm upgrade --install --devel --wait \
           --set image.repository=${{ inputs.controller-image-repository }} \
           --set image.tag=${{ inputs.controller-image-tag }} \
           --set policyServer.image.repository=${{ inputs.policy-server-repository }} \
@@ -120,7 +120,7 @@ runs:
       shell: bash
     - name: "Install Kubewarden defaults"
       run: |
-        helm upgrade --install --wait \
+        helm upgrade --install --devel --wait \
           --namespace kubewarden \
           kubewarden-defaults kubewarden/kubewarden-defaults
       shell: bash
