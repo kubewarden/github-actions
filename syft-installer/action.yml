@@ -16,6 +16,7 @@ runs:
   using: "composite"
   steps:
     - shell: bash
+      if: ${{ inputs.arch != 'windows_amd64' }}
       run: |
         #!/bin/bash
         set -e
@@ -27,5 +28,21 @@ runs:
         curl -sL https://github.com/anchore/syft/releases/download/v${{ inputs.VERSION }}/syft_${{ inputs.VERSION }}_${{ inputs.arch }}.tar.gz -o $INSTALL_DIR/syft.tar.gz
         tar xvf $INSTALL_DIR/syft.tar.gz -C $INSTALL_DIR
         rm $INSTALL_DIR/syft.tar.gz
+
+        echo $INSTALL_DIR >> $GITHUB_PATH
+
+    - shell: bash
+      if: ${{ inputs.arch == 'windows_amd64' }}
+      run: |
+        #!/bin/bash
+        set -e
+
+        INSTALL_DIR=$HOME/.syft
+
+        mkdir -p $INSTALL_DIR
+
+        curl -sL https://github.com/anchore/syft/releases/download/v${{ inputs.VERSION }}/syft_${{ inputs.VERSION }}_windows_amd64.zip -o $INSTALL_DIR/syft.zip
+        unzip -n $INSTALL_DIR/syft.zip -d $INSTALL_DIR
+        rm $INSTALL_DIR/syft.zip
 
         echo $INSTALL_DIR >> $GITHUB_PATH
