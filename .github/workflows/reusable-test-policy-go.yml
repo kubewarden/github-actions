@@ -14,7 +14,7 @@ jobs:
   unit-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: setup Go
         uses: actions/setup-go@v4
@@ -27,7 +27,7 @@ jobs:
   e2e-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install dependencies
         uses: kubewarden/github-actions/policy-gh-action-dependencies@v3.1.9
       - name: Build and annotate policy
@@ -43,7 +43,7 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version: "stable"
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
@@ -53,7 +53,7 @@ jobs:
     if: ${{ inputs.artifacthub }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           # until https://github.com/actions/checkout/pull/579 is released
           fetch-depth: 0
