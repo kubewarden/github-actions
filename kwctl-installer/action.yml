@@ -1,13 +1,13 @@
-name: 'kwctl-installer'
-description: 'Install kwctl and includes it inside of PATH'
+name: "kwctl-installer"
+description: "Install kwctl and includes it inside of PATH"
 branding:
-  icon: 'package'
-  color: 'blue'
+  icon: "package"
+  color: "blue"
 inputs:
   KWCTL_VERSION:
-    description: 'kwctl release to be installed'
+    description: "kwctl release to be installed"
     required: false
-    default: v1.6.0
+    default: v1.7.0
 runs:
   using: "composite"
   steps:
@@ -27,4 +27,3 @@ runs:
         mv $INSTALL_DIR/kwctl-linux-x86_64 $INSTALL_DIR/kwctl
         chmod 755 $INSTALL_DIR/kwctl
         echo $INSTALL_DIR >> $GITHUB_PATH
-
