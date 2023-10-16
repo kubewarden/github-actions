@@ -7,7 +7,7 @@ inputs:
   tinygo-version:
     required: true
     description: "Version of tinygo to use"
-    default: 0.28.1
+    default: 0.30.0
   generate-sbom:
     required: false
     description: "Generate and sign SBOM files"
