@@ -41,7 +41,7 @@ inputs:
     description: "K3d cluster arguments"
     required: false
     type: string
-    default: "--agents 1 --image rancher/k3s:v1.24.9-k3s2"
+    default: "--agents 1 --image rancher/k3s:v1.26.10-k3s2"
 
 runs:
   using: "composite"
