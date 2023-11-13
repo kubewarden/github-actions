@@ -7,7 +7,7 @@ inputs:
   KWCTL_VERSION:
     description: "kwctl release to be installed"
     required: false
-    default: v1.9.0-rc2
+    default: v1.9.0
 runs:
   using: "composite"
   steps:
@@ -17,13 +17,16 @@ runs:
         set -e
 
         INSTALL_DIR=$HOME/.kwctl
+        RELEASE_URL="download/${{ inputs.KWCTL_VERSION }}"
+        [ "${{ inputs.KWCTL_VERSION }}" == "latest" ] && RELEASE_URL="latest/download"
 
         mkdir -p $INSTALL_DIR
-
-        curl -sL https://github.com/kubewarden/kwctl/releases/download/${{ inputs.KWCTL_VERSION }}/kwctl-linux-x86_64.zip -o $INSTALL_DIR/kwctl-linux-x86_64.zip
-        unzip $INSTALL_DIR/kwctl-linux-x86_64.zip -d $INSTALL_DIR
+        curl -sL https://github.com/kubewarden/kwctl/releases/$RELEASE_URL/kwctl-linux-x86_64.zip -o $INSTALL_DIR/kwctl-linux-x86_64.zip
+        unzip -o $INSTALL_DIR/kwctl-linux-x86_64.zip -d $INSTALL_DIR
         rm $INSTALL_DIR/kwctl-linux-x86_64.zip
 
         mv $INSTALL_DIR/kwctl-linux-x86_64 $INSTALL_DIR/kwctl
         chmod 755 $INSTALL_DIR/kwctl
         echo $INSTALL_DIR >> $GITHUB_PATH
+
+        $INSTALL_DIR/kwctl -V
