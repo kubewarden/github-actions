@@ -50,7 +50,7 @@ runs:
           policy-sbom.spdx.json
     - name: Upload policy SBOM files
       if: ${{ inputs.generate-sbom == 'true' }}
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: policy-sbom
         path: |
