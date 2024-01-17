@@ -22,8 +22,8 @@ runs:
 
         curl -sL https://github.com/WebAssembly/binaryen/releases/download/version_${{ inputs.VERSION }}/binaryen-version_${{ inputs.VERSION }}-x86_64-linux.tar.gz -o $INSTALL_DIR/binaryen.tar.gz
         tar xvf $INSTALL_DIR/binaryen.tar.gz -C $INSTALL_DIR
-        mv $INSTALL_DIR/binaryen-version_${{ input.VERSION }}/bin/* $INSTALL_DIR
+        mv $INSTALL_DIR/binaryen-version_${{ inputs.VERSION }}/bin/* $INSTALL_DIR
         rm $INSTALL_DIR/binaryen.tar.gz
-        rm -rf $INSTALL_DIR/binaryen-version_${{ input.VERSION }}
+        rm -rf $INSTALL_DIR/binaryen-version_${{ inputs.VERSION }}
 
         echo $INSTALL_DIR >> $GITHUB_PATH
