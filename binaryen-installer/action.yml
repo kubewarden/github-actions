@@ -1,0 +1,29 @@
+name: "binaryen-installer"
+description: "Install binaryen and includes it inside of PATH"
+branding:
+  icon: "package"
+  color: "blue"
+inputs:
+  VERSION:
+    description: "binaryen release to be installed"
+    required: false
+    default: "116"
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: |
+        #!/bin/bash
+        set -e
+
+        INSTALL_DIR=$HOME/.binaryen
+
+        mkdir -p $INSTALL_DIR
+
+        curl -sL https://github.com/WebAssembly/binaryen/releases/download/version_${{ inputs.VERSION }}/binaryen-version_${{ inputs.VERSION }}-x86_64-linux.tar.gz -o $INSTALL_DIR/binaryen.tar.gz
+        tar xvf $INSTALL_DIR/binaryen.tar.gz -C $INSTALL_DIR
+        mv $INSTALL_DIR/binaryen-version_${{ input.VERSION }}/bin/* $INSTALL_DIR
+        rm $INSTALL_DIR/binaryen.tar.gz
+        rm -rf $INSTALL_DIR/binaryen-version_${{ input.VERSION }}
+
+        echo $INSTALL_DIR >> $GITHUB_PATH
