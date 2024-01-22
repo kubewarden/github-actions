@@ -46,7 +46,7 @@ jobs:
           sudo apt-get -q install -y wabt binaryen
       -
         name: Build release
-        uses: swiftwasm/swiftwasm-action@v5.7
+        uses: swiftwasm/swiftwasm-action@v5.9
         with:
           shell-action: swift build -c release --triple wasm32-unknown-wasi --build-path build
       -
