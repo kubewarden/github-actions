@@ -1,5 +1,5 @@
 name: "kubewarden-policy-build-go"
-description: "Build a go policy using go"
+description: "Build a Go policy using TinyGo"
 branding:
   icon: "package"
   color: "blue"
@@ -19,6 +19,13 @@ runs:
   steps:
     - name: Checkout code
       uses: actions/checkout@v4
+    # TinyGo requires the official Go compiler to be installed
+    # Ensure latest stable release is available, do not rely on what
+    # is provided out of the box by  the GH runner
+    - name: setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: "stable"
     - name: Install tinygo
       shell: bash
       run: |
