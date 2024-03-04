@@ -93,7 +93,7 @@ runs:
       run: kubectl wait --for=condition=Ready nodes --all
       shell: bash
     - name: "Install Helm"
-      uses: azure/setup-helm@v3
+      uses: azure/setup-helm@v4
       with:
         version: 'latest' # default is latest stable
       id: install
