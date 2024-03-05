@@ -1,0 +1,27 @@
+name: 'tarpaulin-installer'
+description: 'Install tarpaulin and includes it inside of PATH'
+branding:
+  icon: 'package'
+  color: 'blue'
+inputs:
+  VERSION:
+    description: 'tarpaulin release to be installed'
+    required: false
+    default: "0.27.3"
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: |
+        #!/bin/bash
+        set -e
+
+        INSTALL_DIR=$HOME/.tarpaulin
+
+        mkdir -p $INSTALL_DIR
+
+        curl -sL https://github.com/xd009642/tarpaulin/releases/download/${{ inputs.VERSION }}/cargo-tarpaulin-x86_64-unknown-linux-musl.tar.gz -o $INSTALL_DIR/tarpaulin.tar.gz
+        tar xvf $INSTALL_DIR/tarpaulin.tar.gz -C $INSTALL_DIR
+        rm $INSTALL_DIR/tarpaulin.tar.gz
+
+        echo $INSTALL_DIR >> $GITHUB_PATH
