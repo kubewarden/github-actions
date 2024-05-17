@@ -41,44 +41,39 @@ inputs:
     description: "K3d cluster arguments"
     required: false
     type: string
-    default: "--agents 1 --image rancher/k3s:v1.26.10-k3s2"
+    default: "--agents 1 --image rancher/k3s:v1.27.12-k3s1"
+
+defaults:
+  run:
+    shell: bash
 
 runs:
   using: "composite"
   steps:
-    -
-      name: "debug"
-      shell: bash
+    - name: "debug"
       run: |
         echo ${{ inputs.controller-image-repository }}
         echo ${{ inputs.controller-image-tag }}
         echo ${{ inputs.controller-container-image-artifact }}
-    -
-      name: "Delete previous Kubernetes cluster"
+
+    - name: "Recreate Kubernetes cluster"
       run: |
         k3d cluster delete ${{ inputs.cluster-name }}
-      shell: bash
-    -
-      uses: AbsaOSS/k3d-action@v2.4.0
-      name: "Create Kubernetes cluster"
-      with:
-        cluster-name: ${{ inputs.cluster-name }}
-        args: ${{ inputs.cluster-args }}
-    -
-      name: "Download Kubewarden controller container image artifact"
+        k3d cluster create ${{ inputs.cluster-name }} ${{ inputs.cluster-args }}
+        kubectl wait --for=condition=Ready nodes --all
+
+    - name: "Download Kubewarden controller container image artifact"
       if: ${{ inputs.controller-container-image-artifact != '' }}
       uses: actions/download-artifact@v4
       with:
         name: ${{inputs.controller-container-image-artifact}}
         path: /tmp
-    -
-      name: "Load Kubewarden controller container image into K3D cluster"
+    - name: "Load Kubewarden controller container image into K3D cluster"
       if: ${{ inputs.controller-container-image-artifact != '' }}
       run: |
         k3d image import /tmp/${{inputs.controller-container-image-artifact}}.tar -c ${{ inputs.cluster-name }}
-      shell: bash
-    -
-      name: "Download policy server container image artifact"
+
+    - name: "Download policy server container image artifact"
       if: ${{ inputs.policy-server-container-image-artifact != '' }}
       uses: actions/download-artifact@v4
       with:
@@ -88,26 +83,21 @@ runs:
       if: ${{ inputs.policy-server-container-image-artifact != '' }}
       run: |
         k3d image import /tmp/${{inputs.policy-server-container-image-artifact}}.tar -c ${{ inputs.cluster-name }}
-      shell: bash
-    - name: "Wait cluster to be ready"
-      run: kubectl wait --for=condition=Ready nodes --all
-      shell: bash
+
     - name: "Install Helm"
       uses: azure/setup-helm@v4
       with:
-        version: 'latest' # default is latest stable
-      id: install
+        version: v3.14.4 # default is latest stable
+
     - name: "Install cert-manager and wait to be ready"
       run: |
-        kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.yaml
+        kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.5/cert-manager.yaml
         kubectl wait --for=condition=Available deployment --timeout=3m -n cert-manager --all
-      shell: bash
     - name: "Install Kubewarden Helm repository"
       run: helm repo add --force-update kubewarden https://charts.kubewarden.io
-      shell: bash
+
     - name: "Install Kubewarden CRDs"
       run: helm upgrade --install --devel --wait --namespace kubewarden --create-namespace kubewarden-crds kubewarden/kubewarden-crds
-      shell: bash
     - name: "Install Kubewarden controller"
       run: |
         helm upgrade --install --devel --wait \
@@ -117,10 +107,8 @@ runs:
           --set policyServer.image.tag=${{ inputs.policy-server-tag }} \
           --namespace kubewarden \
           kubewarden-controller kubewarden/kubewarden-controller
-      shell: bash
     - name: "Install Kubewarden defaults"
       run: |
         helm upgrade --install --devel --wait \
           --namespace kubewarden \
           kubewarden-defaults kubewarden/kubewarden-defaults
-      shell: bash
