@@ -43,10 +43,6 @@ inputs:
     type: string
     default: "--agents 1 --image rancher/k3s:v1.27.12-k3s1"
 
-defaults:
-  run:
-    shell: bash
-
 runs:
   using: "composite"
   steps:
@@ -55,12 +51,14 @@ runs:
         echo ${{ inputs.controller-image-repository }}
         echo ${{ inputs.controller-image-tag }}
         echo ${{ inputs.controller-container-image-artifact }}
+      shell: bash
 
     - name: "Recreate Kubernetes cluster"
       run: |
         k3d cluster delete ${{ inputs.cluster-name }}
         k3d cluster create ${{ inputs.cluster-name }} ${{ inputs.cluster-args }}
         kubectl wait --for=condition=Ready nodes --all
+      shell: bash
 
     - name: "Download Kubewarden controller container image artifact"
       if: ${{ inputs.controller-container-image-artifact != '' }}
@@ -72,6 +70,7 @@ runs:
       if: ${{ inputs.controller-container-image-artifact != '' }}
       run: |
         k3d image import /tmp/${{inputs.controller-container-image-artifact}}.tar -c ${{ inputs.cluster-name }}
+      shell: bash
 
     - name: "Download policy server container image artifact"
       if: ${{ inputs.policy-server-container-image-artifact != '' }}
@@ -83,6 +82,7 @@ runs:
       if: ${{ inputs.policy-server-container-image-artifact != '' }}
       run: |
         k3d image import /tmp/${{inputs.policy-server-container-image-artifact}}.tar -c ${{ inputs.cluster-name }}
+      shell: bash
 
     - name: "Install Helm"
       uses: azure/setup-helm@v4
@@ -93,11 +93,14 @@ runs:
       run: |
         kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.5/cert-manager.yaml
         kubectl wait --for=condition=Available deployment --timeout=3m -n cert-manager --all
+      shell: bash
     - name: "Install Kubewarden Helm repository"
       run: helm repo add --force-update kubewarden https://charts.kubewarden.io
+      shell: bash
 
     - name: "Install Kubewarden CRDs"
       run: helm upgrade --install --devel --wait --namespace kubewarden --create-namespace kubewarden-crds kubewarden/kubewarden-crds
+      shell: bash
     - name: "Install Kubewarden controller"
       run: |
         helm upgrade --install --devel --wait \
@@ -107,8 +110,10 @@ runs:
           --set policyServer.image.tag=${{ inputs.policy-server-tag }} \
           --namespace kubewarden \
           kubewarden-controller kubewarden/kubewarden-controller
+      shell: bash
     - name: "Install Kubewarden defaults"
       run: |
         helm upgrade --install --devel --wait \
           --namespace kubewarden \
           kubewarden-defaults kubewarden/kubewarden-defaults
+      shell: bash
