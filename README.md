@@ -1,4 +1,6 @@
 # Kubewarden GitHub Actions
+[![Kubewarden Infra Repository](https://github.com/kubewarden/community/blob/main/badges/kubewarden-infra.svg)](https://github.com/kubewarden/community/blob/main/REPOSITORIES.md#infra-scope)
+[![Stable](https://img.shields.io/badge/status-stable-brightgreen?style=for-the-badge)](https://github.com/kubewarden/community/blob/main/REPOSITORIES.md#stable)
 
 This is a collection of GitHub Actions to help with Kubewarden and Kubewarden
 policies. It contains:
