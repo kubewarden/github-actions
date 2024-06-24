@@ -1,0 +1,59 @@
+name: GH release
+on:
+  push:
+    tags:
+      - "v*"
+
+# Declare default permissions as read only.
+permissions: read-all
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+    permissions: read-all
+
+  release:
+    name: Create release
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Retrieve tag name
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        run: |
+          echo TAG_NAME=$(echo ${{ github.ref_name }}) >> $GITHUB_ENV
+
+      - name: Get release ID from the release created by release drafter
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            let releases = await github.rest.repos.listReleases({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+            });
+            for (const release of releases.data) {
+              if (release.draft) {
+                      core.info(release)
+                      core.exportVariable('RELEASE_ID', release.id)
+                      return
+              }
+            }
+            core.setFailed(`Draft release not found`)
+
+      - name: Publish release
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const {RELEASE_ID} = process.env
+            const {TAG_NAME} = process.env
+            isPreRelease = ${{ contains(github.ref_name, '-alpha') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc') }}
+            github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: `${RELEASE_ID}`,
+              draft: false,
+              tag_name: `${TAG_NAME}`,
+              name: `${TAG_NAME}`,
+              prerelease: isPreRelease,
+              make_latest: !isPreRelease
+            });
