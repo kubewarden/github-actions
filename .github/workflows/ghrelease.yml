@@ -8,10 +8,6 @@ on:
 permissions: read-all
 
 jobs:
-  ci:
-    uses: ./.github/workflows/ci.yml
-    permissions: read-all
-
   release:
     name: Create release
     permissions:
