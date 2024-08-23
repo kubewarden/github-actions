@@ -19,11 +19,11 @@ management"](https://docs.github.com/en/actions/creating-actions/about-custom-ac
 ### Releasing a new tag
 
 1. We ourselves are consumers of our own GHA in this repo, as we
-   consume the actions in the reusable workflows. Decide on the future tag
-   version you will create, and then, preemptively update all the tags of our
-   own github-actions in this repo to that one, and commit those changes.
+   consume the actions in the reusable workflows. To release, decide on the
+   future tag version you will create, and then, preemptively update all the
+   tags of our own github-actions in this repo to that one, and commit those changes.
    
-   We can't use RenovateBot or the like, as it would updated the tags *after* we
+   We can't use RenovateBot or the like, as it would update the tags *after* we
    have already tagged, so the tagged version would not consume itself, but a
    previous version.
 1. Tag your release with a semver tag (e.g: `v2.3.0`).
