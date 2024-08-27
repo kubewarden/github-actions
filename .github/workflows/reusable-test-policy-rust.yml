@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       artifacthub:
-        description: 'check artifacthub-pkg.yml for submission to ArtifactHub'
+        description: "check artifacthub-pkg.yml for submission to ArtifactHub"
         required: false
         type: boolean
         default: true
@@ -30,20 +30,16 @@ jobs:
     if: ${{ inputs.artifacthub }}
     runs-on: ubuntu-latest
     steps:
-      -
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           # until https://github.com/actions/checkout/pull/579 is released
           fetch-depth: 0
-      -
-        name: Install kwctl
+      - name: Install kwctl
         uses: kubewarden/github-actions/kwctl-installer@v3.3.2
-      -
-        id: calculate-version
+      - id: calculate-version
         run: echo "version=$(sed  -n 's,^version = \"\(.*\)\",\1,p' Cargo.toml)" >> $GITHUB_OUTPUT
         shell: bash
-      -
-        name: Check that artifacthub-pkg.yml is up-to-date
+      - name: Check that artifacthub-pkg.yml is up-to-date
         uses: kubewarden/github-actions/check-artifacthub@v3.3.2
         with:
           version: ${{ steps.calculate-version.outputs.version }}
