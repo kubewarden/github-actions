@@ -3,6 +3,13 @@ description: "Build a rust policy using rust"
 branding:
   icon: "package"
   color: "blue"
+inputs:
+  generate-sbom:
+    required: false
+    description: "Generate and sign SBOM files"
+    # Boolean input should be compared with string
+    # until https://github.com/actions/runner/issues/2238 resolved
+    default: "true"
 runs:
   using: "composite"
   steps:
@@ -28,6 +35,7 @@ runs:
       run: |
         make annotated-policy.wasm
     - name: Generate the SBOM files
+      if: ${{ inputs.generate-sbom == 'true' }}
       shell: bash
       run: |
         spdx-sbom-generator -f json
@@ -36,12 +44,14 @@ runs:
         # https://clomonitor.io/docs/topics/checks/#software-bill-of-materials-sbom
         mv bom-cargo.json policy-sbom.spdx.json
     - name: Sign BOM file
+      if: ${{ inputs.generate-sbom == 'true' }}
       shell: bash
       run: |
         cosign sign-blob --yes --output-certificate policy-sbom.spdx.cert \
           --output-signature policy-sbom.spdx.sig \
           policy-sbom.spdx.json
     - name: Upload policy SBOM files
+      if: ${{ inputs.generate-sbom == 'true' }}
       uses: actions/upload-artifact@v4
       with:
         name: policy-sbom
