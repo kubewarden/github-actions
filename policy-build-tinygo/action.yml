@@ -1,4 +1,4 @@
-name: "kubewarden-policy-build-go"
+name: "kubewarden-policy-build-tinygo"
 description: "Build a Go policy using TinyGo"
 branding:
   icon: "package"
