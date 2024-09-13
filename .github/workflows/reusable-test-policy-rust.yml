@@ -35,12 +35,12 @@ jobs:
           # until https://github.com/actions/checkout/pull/579 is released
           fetch-depth: 0
       - name: Install kwctl
-        uses: kubewarden/github-actions/kwctl-installer@v3.3.4
+        uses: kubewarden/github-actions/kwctl-installer@v3.3.5
       - id: calculate-version
         run: echo "version=$(sed  -n 's,^version = \"\(.*\)\",\1,p' Cargo.toml)" >> $GITHUB_OUTPUT
         shell: bash
       - name: Check that artifacthub-pkg.yml is up-to-date
-        uses: kubewarden/github-actions/check-artifacthub@v3.3.4
+        uses: kubewarden/github-actions/check-artifacthub@v3.3.5
         with:
           version: ${{ steps.calculate-version.outputs.version }}
   check:
@@ -75,11 +75,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
-        uses: kubewarden/github-actions/policy-gh-action-dependencies@v3.3.4
+        uses: kubewarden/github-actions/policy-gh-action-dependencies@v3.3.5
       - name: Build and annotate policy
         with:
           generate-sbom: false
-        uses: kubewarden/github-actions/policy-build-rust@v3.3.4
+        uses: kubewarden/github-actions/policy-build-rust@v3.3.5
       - name: Run e2e tests
         run: |
           make e2e-tests
