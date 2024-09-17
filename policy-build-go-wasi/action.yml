@@ -1,13 +1,9 @@
-name: "kubewarden-policy-build-go"
-description: "Build a Go policy using TinyGo"
+name: "kubewarden-policy-build-go-wasi"
+description: "Build a Go policy using the official Go compiler, targetting WASI"
 branding:
   icon: "package"
   color: "blue"
 inputs:
-  tinygo-version:
-    required: true
-    description: "Version of tinygo to use"
-    default: 0.33.0
   generate-sbom:
     required: false
     description: "Generate and sign SBOM files"
@@ -19,22 +15,14 @@ runs:
   steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    # TinyGo requires the official Go compiler to be installed
-    # Ensure latest stable release is available, do not rely on what
-    # is provided out of the box by  the GH runner
     - name: setup Go
       uses: actions/setup-go@v5
       with:
         go-version: "1.23"
-    - name: Install tinygo
-      shell: bash
-      run: |
-        wget https://github.com/tinygo-org/tinygo/releases/download/v${{ inputs.tinygo-version }}/tinygo_${{ inputs.tinygo-version }}_amd64.deb
-        sudo dpkg -i tinygo_${{ inputs.tinygo-version }}_amd64.deb
     - name: Build Wasm module
       shell: bash
       run: |
-        tinygo build -o policy.wasm -target=wasi -no-debug .
+        make policy.wasm
     - name: Generate the SBOM files
       if: ${{ inputs.generate-sbom == 'true' }}
       shell: bash
