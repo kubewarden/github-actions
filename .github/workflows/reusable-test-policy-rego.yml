@@ -8,6 +8,15 @@ on:
         required: false
         type: boolean
         default: true
+      policy-working-dir:
+        description: "working directory of the policy. Useful for repos with policies in folders"
+        required: false
+        type: string
+        default: .
+      policy-version:
+        description: "release version of the policy. Useful for repos with policies in folders, and only on release jobs"
+        required: false
+        type: string
     secrets: {}
 
 jobs:
@@ -18,8 +27,10 @@ jobs:
       - name: Install opa
         uses: kubewarden/github-actions/opa-installer@v3.3.5
       - name: Run unit tests
+        working-directory: ${{ inputs.policy-working-dir }}
         run: make test
   check-artifacthub:
+    # construct updated artifacthub-pkg.yml and check it contains the correct values
     if: ${{ inputs.artifacthub }}
     runs-on: ubuntu-latest
     steps:
@@ -30,10 +41,18 @@ jobs:
       - name: Install kwctl
         uses: kubewarden/github-actions/kwctl-installer@v3.3.5
       - id: calculate-version
-        run: echo "version=$(git describe --tags --abbrev=0 | cut -c2-)" >> $GITHUB_OUTPUT
         shell: bash
+        run: |
+          if [ "${{ inputs.policy-version }}" != "" ];then 
+            echo "version=${{ inputs.policy-version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=$(git describe --tags --abbrev=0 | cut -c2-)" >> $GITHUB_OUTPUT
+          fi
       - name: Check that artifacthub-pkg.yml is up-to-date
+        # only makes sense to run this check if artifacthub-pkg.yml has been
+        # updated for an upcoming release.
         uses: kubewarden/github-actions/check-artifacthub@v3.3.5
         with:
           version: ${{ steps.calculate-version.outputs.version }}
           check_version: false # must match a git tag that hasn't been created yet, so let's ignore until then
+          policy-working-dir: ${{ inputs.policy-working-dir }}
