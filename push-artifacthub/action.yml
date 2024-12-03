@@ -1,16 +1,14 @@
-name: 'kubewarden-check-artifacthub'
-description: 'Push artifacthub files to artifacthub branch'
+name: "kubewarden-check-artifacthub"
+description: "Push artifacthub files to artifacthub branch"
 branding:
-  icon: 'package'
-  color: 'blue'
+  icon: "package"
+  color: "blue"
 runs:
   using: "composite"
   steps:
-    -
-      name: Checkout code
+    - name: Checkout code
       uses: actions/checkout@v4
-    -
-      name: Check that artifacthub-pkg.yml is up-to-date
+    - name: Check that artifacthub-pkg.yml is up-to-date
       shell: bash
       run: |
         git config user.name "Update artifacthub branch"

@@ -1,25 +1,24 @@
-name: 'kubewarden-check-artifacthub'
-description: 'Check that artifacthub-pkg.yml is up-to-date'
+name: "kubewarden-check-artifacthub"
+description: "Check that artifacthub-pkg.yml is up-to-date"
 branding:
-  icon: 'package'
-  color: 'blue'
+  icon: "package"
+  color: "blue"
 inputs:
   version:
-    description: 'version string to use in artifacthub-plg.yml'
+    description: "version string to use in artifacthub-plg.yml"
     required: true
     type: string
   check_version:
-    description: 'check version string in comparison'
+    description: "check version string in comparison"
     default: true
     type: bool
 runs:
   using: "composite"
   steps:
-    -
-      name: Checkout code
+    - name: Checkout code
       uses: actions/checkout@v4
-    -
-      name: Check that artifacthub-pkg.yml is up-to-date
+
+    - name: Check that artifacthub-pkg.yml is up-to-date
       shell: bash
       run: |
         rm artifacthub-pkg.yml # force recreation of file
