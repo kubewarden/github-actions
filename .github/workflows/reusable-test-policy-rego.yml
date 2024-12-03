@@ -25,7 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install opa
-        uses: kubewarden/github-actions/opa-installer@v3.3.5
+        uses: viccuad/github-actions/opa-installer@main
       - name: Run unit tests
         working-directory: ${{ inputs.policy-working-dir }}
         run: make test
@@ -51,7 +51,7 @@ jobs:
       - name: Check that artifacthub-pkg.yml is up-to-date
         # only makes sense to run this check if artifacthub-pkg.yml has been
         # updated for an upcoming release.
-        uses: kubewarden/github-actions/check-artifacthub@v3.3.5
+        uses: viccuad/github-actions/check-artifacthub@main
         with:
           version: ${{ steps.calculate-version.outputs.version }}
           check_version: false # must match a git tag that hasn't been created yet, so let's ignore until then

@@ -40,7 +40,7 @@ jobs:
         run: echo "version=$(sed  -n 's,^version = \"\(.*\)\",\1,p' Cargo.toml)" >> $GITHUB_OUTPUT
         shell: bash
       - name: Check that artifacthub-pkg.yml is up-to-date
-        uses: kubewarden/github-actions/check-artifacthub@v3.3.5
+        uses: viccuad/github-actions/check-artifacthub@main
         with:
           version: ${{ steps.calculate-version.outputs.version }}
   check:
