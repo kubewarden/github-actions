@@ -26,7 +26,7 @@ runs:
       shell: bash
       working-directory: ${{ inputs.policy-working-dir }}
       run: |
-        rm artifacthub-pkg.yml # force recreation of file
+        rm -rf artifacthub-pkg.yml # force recreation of file
         make artifacthub-pkg.yml VERSION=${{ inputs.version }}
         # ignore createdAt: if there's a new file it will always be newer
         if ${{ inputs.check_version }}; then
