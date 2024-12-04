@@ -7,7 +7,7 @@ inputs:
   opa-version:
     description: "opa release to be installed"
     required: false
-    default: v0.32.0
+    default: v0.65.0
 runs:
   using: "composite"
   steps:
