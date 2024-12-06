@@ -80,8 +80,8 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
       with:
-        name: Release ${{ github.ref_name }}
         tag_name: ${{ github.ref }}
+        name: ${{ github.ref_name }}
         draft: false
         prerelease: ${{ steps.calculate-version.outputs.is_prerelease }}
         files: |
