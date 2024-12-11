@@ -20,27 +20,13 @@ inputs:
     type: string
     default: .
   policy-version:
-    description: "release version of the policy. Useful for repos with policies in folders"
-    required: false
+    description: "release version of the policy without `v` prefix. E.g: 0.1.0"
+    required: true
     type: string
 
 runs:
   using: "composite"
   steps:
-    - id: calculate-version
-      shell: bash
-      run: |
-        set -ex
-        if [ "${{ inputs.policy-version }}" != "" ];then 
-          # If present, it means we are dealing with tags in the form of PolicyName/v0.1.0
-          # Transform the passed policy-version=0.1.0 into version=v0.1.0
-          echo "version=v${{ inputs.policy-version }}" >> $GITHUB_OUTPUT
-          echo "is_prerelease=${{ contains(inputs.policy-version, '-alpha') || contains(inputs.policy-version, '-beta') || contains(inputs.policy-version, '-rc') }}" >> $GITHUB_OUTPUT
-        else
-          # We are dealing with normal tags. Use the full tag.
-          echo "version=$(echo $GITHUB_REF | sed -e 's|refs/tags/||')" >> $GITHUB_OUTPUT
-          echo "is_prerelease=${{ contains(github.ref, '-alpha') || contains(github.ref, '-beta') || contains(github.ref, '-rc') }}" >> $GITHUB_OUTPUT
-        fi
     - name: Login to GitHub Container Registry
       uses: docker/login-action@v3
       with:
@@ -67,7 +53,7 @@ runs:
       working-directory: ${{ inputs.policy-working-dir }}
       run: |
         set -ex
-        export OCI_TAG=${{ steps.calculate-version.outputs.version }}
+        export OCI_TAG="v${{ inputs.policy-version }}"
 
         echo Pushing tagged policy to OCI container registry
         IMMUTABLE_REF=$(kwctl push -o json ${{ inputs.annotated-wasm }} ${{ inputs.oci-target }}:${OCI_TAG} | jq -r .immutable_ref)
@@ -83,7 +69,7 @@ runs:
         tag_name: ${{ github.ref }}
         name: ${{ github.ref_name }}
         draft: false
-        prerelease: ${{ steps.calculate-version.outputs.is_prerelease }}
+        prerelease: ${{ contains(inputs.policy-version, '-alpha') || contains(inputs.policy-version, '-beta') || contains(inputs.policy-version, '-rc') }}
         files: |
           ${{ inputs.policy-working-dir }}/policy.wasm
           ${{ inputs.policy-working-dir }}/policy-sbom.spdx.json
