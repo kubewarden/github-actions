@@ -35,10 +35,6 @@ jobs:
           # until https://github.com/actions/checkout/pull/579 is released
           fetch-depth: 0
       - id: calculate-version
-        if: ${{ inputs.artifacthub && ( ! startsWith(github.ref, 'refs/heads/') ) }}
-        # version may come from the policy-version var or from a tag.
-        # If neither is set, skip setting it, as the job is releasing :latest
-        # from main and must not update artifacthub-pkg.
         shell: bash
         run: |
           if [ "${{ inputs.policy-version }}" != "" ];then 
