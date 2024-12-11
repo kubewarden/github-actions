@@ -80,7 +80,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           oci-target: ${{ inputs.oci-target }}
           policy-working-dir: ${{ inputs.policy-working-dir }}
-          policy-version: ${{ inputs.policy-version }}
+          policy-version: ${{ steps.calculate-version.outputs.version }}
   push-artifacthub:
     # skip when releasing :latest from main, versions will not match
     if: ${{ inputs.artifacthub && ( ! startsWith(github.ref, 'refs/heads/') ) }}
