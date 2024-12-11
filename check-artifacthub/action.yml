@@ -5,7 +5,7 @@ branding:
   color: "blue"
 inputs:
   version:
-    description: "version string to use when constructing artifacthub-pkg.yml"
+    description: "version string to use when constructing artifacthub-pkg.yml. E.g: 0.1.0"
     required: true
     type: string
   check_version:
