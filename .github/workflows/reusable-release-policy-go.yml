@@ -23,11 +23,22 @@ jobs:
           # until https://github.com/actions/checkout/pull/579 is released
           fetch-depth: 0
       - id: calculate-version
-        # skip when releasing :latest from main, versions will not match
-        if: startsWith(github.ref, 'refs/tags/v') && inputs.artifacthub
-        # obtain latest tag. Here it must be the current release tag
-        run: echo "version=$(git describe --tags --abbrev=0 | cut -c2-)" >> $GITHUB_OUTPUT
         shell: bash
+        run: |
+          if [ ${{ startsWith(github.ref, 'refs/tags/v') }} == true ]; then
+            # Triggered via normal tag.
+            # Use the latest tag (e.g: v0.1.11) without the `v` prefix.
+            version=$(git describe --tags --abbrev=0 | cut -c2-)
+          else
+            # Triggered via branch, version is not checked in artifacthub.
+            # Still, `make artifacthub-pkg.yml` needs a proper semver string.
+            # 
+            # Use most recent tag with the number of additional commits on top
+            # of the tagged object & last commit hash (eg. v0.1.11-3-g8a36322),
+            # without the `v` prefix.
+            version=$(git describe --tags | cut -c2-)
+          fi
+          echo "version=$version" >> $GITHUB_OUTPUT
       - name: Check that artifacthub-pkg.yml is up-to-date
         # skip when releasing :latest from main, versions will not match
         if: startsWith(github.ref, 'refs/tags/v') && inputs.artifacthub
