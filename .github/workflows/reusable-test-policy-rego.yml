@@ -14,7 +14,10 @@ on:
         type: string
         default: .
       policy-version:
-        description: "release version of the policy. Useful for repos with policies in folders, and only on release jobs"
+        description: |
+          Release version of the policy, without 'v' prefix. Optional.
+          Defaults to extracting the version from tag if tag present.
+          E.g: tag "v0.1.0", policy-version=0.1.0
         required: false
         type: string
     secrets: {}
@@ -44,8 +47,11 @@ jobs:
         shell: bash
         run: |
           if [ "${{ inputs.policy-version }}" != "" ];then 
+            # If present, it means we are dealing with tags in the form of PolicyName/v0.1.0
+            # Transform the passed policy-version=0.1.0 into version=v0.1.0
             echo "version=${{ inputs.policy-version }}" >> $GITHUB_OUTPUT
           else
+            # We are dealing with normal tags. Use the full tag, after cutting the `v` prefix
             echo "version=$(git describe --tags --abbrev=0 | cut -c2-)" >> $GITHUB_OUTPUT
           fi
       - name: Check that artifacthub-pkg.yml is up-to-date
