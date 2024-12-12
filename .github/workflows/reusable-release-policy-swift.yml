@@ -23,8 +23,9 @@ jobs:
           # until https://github.com/actions/checkout/pull/579 is released
           fetch-depth: 0
       - id: calculate-version
+        if: ${{ ! startsWith(github.ref, 'refs/heads/') }}
         # obtain latest tag. Here it must be the current release tag
-        run: echo "version=$(git describe --tags --abbrev=0 | cut -c2-)" >> $GITHUB_OUTPUT
+        run: echo "version=$(echo ${{ github.ref_name }} | cut -c2-)" >> $GITHUB_OUTPUT
         shell: bash
       - name: Check that artifacthub-pkg.yml is up-to-date
         # skip when releasing :latest from main, versions will not match

@@ -37,6 +37,7 @@ jobs:
       - name: Install kwctl
         uses: kubewarden/github-actions/kwctl-installer@v3.3.5
       - id: calculate-version
+        if: ${{ ! startsWith(github.ref, 'refs/heads/') }}
         run: echo "version=$(sed  -n 's,^version = \"\(.*\)\",\1,p' Cargo.toml)" >> $GITHUB_OUTPUT
         shell: bash
       - name: Check that artifacthub-pkg.yml is up-to-date

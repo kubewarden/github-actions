@@ -44,6 +44,7 @@ jobs:
       - name: Install kwctl
         uses: kubewarden/github-actions/kwctl-installer@v3.3.5
       - id: calculate-version
+        if: ${{ ! startsWith(github.ref, 'refs/heads/') }}
         shell: bash
         run: |
           if [ "${{ inputs.policy-version }}" != "" ];then 
@@ -52,7 +53,7 @@ jobs:
             echo "version=${{ inputs.policy-version }}" >> $GITHUB_OUTPUT
           else
             # We are dealing with normal tags. Use the full tag, after cutting the `v` prefix
-            echo "version=$(git describe --tags --abbrev=0 | cut -c2-)" >> $GITHUB_OUTPUT
+            echo "version=$(echo ${{ github.ref_name }} | cut -c2-)" >> $GITHUB_OUTPUT
           fi
       - name: Check that artifacthub-pkg.yml is up-to-date
         # only makes sense to run this check if artifacthub-pkg.yml has been
