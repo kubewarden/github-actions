@@ -47,7 +47,7 @@ jobs:
           fi
       - name: Check that artifacthub-pkg.yml is up-to-date
         # skip when releasing :latest from main, versions will not match
-        if: ${{ inputs.artifacthub && ( ! startsWith(github.ref, 'refs/heads/') }}
+        if: ${{ inputs.artifacthub && ( ! startsWith(github.ref, 'refs/heads/') ) }}
         uses: viccuad/github-actions/check-artifacthub@main
         with:
           version: ${{ steps.calculate-version.outputs.version }}
