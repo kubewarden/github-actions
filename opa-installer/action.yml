@@ -1,13 +1,13 @@
-name: 'opa-installer'
-description: 'Install opa and add it to PATH'
+name: "opa-installer"
+description: "Install opa and add it to PATH"
 branding:
-  icon: 'package'
-  color: 'blue'
+  icon: "package"
+  color: "blue"
 inputs:
   opa-version:
-    description: 'opa release to be installed'
+    description: "opa release to be installed"
     required: false
-    default: v0.32.0
+    default: v0.65.0
 runs:
   using: "composite"
   steps:

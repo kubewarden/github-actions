@@ -1,11 +1,11 @@
-name: 'kubewarden-policy-release'
-description: 'Release a Kubewarden policy'
+name: "kubewarden-policy-release"
+description: "Release a Kubewarden policy"
 branding:
-  icon: 'package'
-  color: 'blue'
+  icon: "package"
+  color: "blue"
 inputs:
   annotated-wasm:
-    description: 'name of the annotated wasm file'
+    description: "name of the annotated wasm file"
     required: false
     default: annotated-policy.wasm
   oci-target:
@@ -14,57 +14,60 @@ inputs:
   GITHUB_TOKEN:
     required: true
     type: string
+  policy-working-dir:
+    description: "working directory of the policy. Useful for repos with policies in folders"
+    required: false
+    type: string
+    default: .
+  policy-version:
+    description: "release version of the policy without `v` prefix. E.g: 0.1.0"
+    required: true
+    type: string
+
 runs:
   using: "composite"
   steps:
-    -
-      name: Login to GitHub Container Registry
+    - name: Login to GitHub Container Registry
       uses: docker/login-action@v3
       with:
         registry: ghcr.io
         username: ${{ github.repository_owner }}
         password: ${{ inputs.GITHUB_TOKEN }}
-    -
-      name: Publish Wasm policy artifact to OCI registry with the 'latest' tag
+    - name: Publish Wasm policy artifact to OCI registry with the 'latest' tag
       shell: bash
       if: ${{ startsWith(github.ref, 'refs/heads/') }}
-      env:
-        COSIGN_EXPERIMENTAL: 1
       run: |
         set -ex
-        echo Pushing policy to OCI container registry
+        echo Pushing :latest policy to OCI container registry
         IMMUTABLE_REF=$(kwctl push -o json ${{ inputs.annotated-wasm }} ${{ inputs.oci-target }}:latest | jq -r .immutable_ref)
 
         echo Keyless signing of policy using cosign
         cosign sign --yes ${IMMUTABLE_REF}
-    -
-      name: Publish Wasm policy artifact to OCI registry with the version tag and 'latest'
+    - name: Publish Wasm policy artifact to OCI registry with the version tag and 'latest'
       shell: bash
-      if: ${{ startsWith(github.ref, 'refs/tags/') }}
-      env:
-        COSIGN_EXPERIMENTAL: 1
+      if: ${{ ! startsWith(github.ref, 'refs/heads/') }}
+      working-directory: ${{ inputs.policy-working-dir }}
       run: |
         set -ex
-        export OCI_TAG=$(echo $GITHUB_REF | sed -e "s|refs/tags/||")
+        export OCI_TAG="v${{ inputs.policy-version }}"
 
-        echo Pushing policy to OCI container registry
+        echo Pushing tagged policy to OCI container registry
         IMMUTABLE_REF=$(kwctl push -o json ${{ inputs.annotated-wasm }} ${{ inputs.oci-target }}:${OCI_TAG} | jq -r .immutable_ref)
 
         echo Keyless signing of policy using cosign
         cosign sign --yes ${IMMUTABLE_REF}
-    -
-      name: Create release
-      if: ${{ startsWith(github.ref, 'refs/tags/') }}
+    - name: Create release
+      if: ${{ ! startsWith(github.ref, 'refs/heads/') }}
       uses: softprops/action-gh-release@v2
       env:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
       with:
         tag_name: ${{ github.ref }}
-        name: Release ${{ github.ref_name }}
+        name: ${{ github.ref_name }}
         draft: false
-        prerelease: ${{ contains(github.ref, '-alpha') || contains(github.ref, '-beta') || contains(github.ref, '-rc') }}
+        prerelease: ${{ contains(inputs.policy-version, '-alpha') || contains(inputs.policy-version, '-beta') || contains(inputs.policy-version, '-rc') }}
         files: |
-          policy.wasm
-          policy-sbom.spdx.json
-          policy-sbom.spdx.cert
-          policy-sbom.spdx.sig
+          ${{ inputs.policy-working-dir }}/policy.wasm
+          ${{ inputs.policy-working-dir }}/policy-sbom.spdx.json
+          ${{ inputs.policy-working-dir }}/policy-sbom.spdx.cert
+          ${{ inputs.policy-working-dir }}/policy-sbom.spdx.sig

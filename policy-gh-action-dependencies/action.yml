@@ -9,12 +9,12 @@ runs:
     - name: Install cosign
       uses: sigstore/cosign-installer@v3
     - name: Install kwctl
-      uses: kubewarden/github-actions/kwctl-installer@v3.3.5
+      uses: kubewarden/github-actions/kwctl-installer@v3.4.0
     - name: Install bats
       uses: mig4/setup-bats@v1.2.0
       with:
         bats-version: 1.11.0
     - name: Install SBOM generator tool
-      uses: kubewarden/github-actions/sbom-generator-installer@v3.3.5
+      uses: kubewarden/github-actions/sbom-generator-installer@v3.4.0
     - name: Install SBOM generator tool
-      uses: kubewarden/github-actions/binaryen-installer@v3.3.5
+      uses: kubewarden/github-actions/binaryen-installer@v3.4.0

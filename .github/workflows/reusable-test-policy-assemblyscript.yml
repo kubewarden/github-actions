@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       artifacthub:
-        description: 'check artifacthub-pkg.yml for submission to ArtifactHub'
+        description: "check artifacthub-pkg.yml for submission to ArtifactHub"
         required: false
         type: boolean
         default: true
@@ -16,39 +16,45 @@ jobs:
     env:
       NODE_VERSION: 14
     steps:
-      -
-        uses: actions/checkout@v4
-      -
-        name: Setup node
+      - uses: actions/checkout@v4
+      - name: Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: '${{ env.NODE_VERSION }}'
-      -
-        name: Install npm
+          node-version: "${{ env.NODE_VERSION }}"
+      - name: Install npm
         run: npm install
-      -
-        name: Run unit-tests
+      - name: Run unit-tests
         run: |
           make test
   check-artifacthub:
     if: ${{ inputs.artifacthub }}
     runs-on: ubuntu-latest
     steps:
-      -
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           # until https://github.com/actions/checkout/pull/579 is released
           fetch-depth: 0
-      -
-        name: Install kwctl
-        uses: kubewarden/github-actions/kwctl-installer@v3.3.5
-      -
-        id: calculate-version
-        run: echo "version=$(git describe --tags --abbrev=0 | cut -c2-)" >> $GITHUB_OUTPUT
+      - name: Install kwctl
+        uses: kubewarden/github-actions/kwctl-installer@v3.4.0
+      - id: calculate-version
         shell: bash
-      -
-        name: Check that artifacthub-pkg.yml is up-to-date
-        uses: kubewarden/github-actions/check-artifacthub@v3.3.5
+        run: |
+          if [ ${{ startsWith(github.ref, 'refs/tags/v') }} == true ]; then
+            # Triggered via normal tag.
+            # Use the latest tag (e.g: v0.1.11) without the `v` prefix.
+            version=$(git describe --tags --abbrev=0 | cut -c2-)
+          else
+            # Triggered via branch, version is not checked in artifacthub.
+            # Still, `make artifacthub-pkg.yml` needs a proper semver string.
+            # 
+            # Use most recent tag with the number of additional commits on top
+            # of the tagged object & last commit hash (eg. v0.1.11-3-g8a36322),
+            # without the `v` prefix.
+            version=$(git describe --tags | cut -c2-)
+          fi
+          echo "version=$version" >> $GITHUB_OUTPUT
+      - name: Check that artifacthub-pkg.yml is up-to-date
+        uses: kubewarden/github-actions/check-artifacthub@v3.4.0
         with:
           version: ${{ steps.calculate-version.outputs.version }}
           check_version: false # must match a git tag that hasn't been created yet, so let's ignore until then

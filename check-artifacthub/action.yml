@@ -1,33 +1,37 @@
-name: 'kubewarden-check-artifacthub'
-description: 'Check that artifacthub-pkg.yml is up-to-date'
+name: "kubewarden-check-artifacthub"
+description: "Check that artifacthub-pkg.yml is up-to-date"
 branding:
-  icon: 'package'
-  color: 'blue'
+  icon: "package"
+  color: "blue"
 inputs:
   version:
-    description: 'version string to use in artifacthub-plg.yml'
+    description: "version string to use when constructing artifacthub-pkg.yml. E.g: 0.1.0"
     required: true
     type: string
   check_version:
-    description: 'check version string in comparison'
+    description: "wether to check that the image, url, etc, contain inputs.version"
     default: true
     type: bool
+  policy-working-dir:
+    description: "working directory of the policy. Useful for repos with policies in folders"
+    required: false
+    type: string
+    default: .
 runs:
   using: "composite"
   steps:
-    -
-      name: Checkout code
+    - name: Checkout code
       uses: actions/checkout@v4
-    -
-      name: Check that artifacthub-pkg.yml is up-to-date
+    - name: Check that artifacthub-pkg.yml is up-to-date
       shell: bash
+      working-directory: ${{ inputs.policy-working-dir }}
       run: |
-        rm artifacthub-pkg.yml # force recreation of file
+        rm -rf artifacthub-pkg.yml # force recreation of file
         make artifacthub-pkg.yml VERSION=${{ inputs.version }}
         # ignore createdAt: if there's a new file it will always be newer
         if ${{ inputs.check_version }}; then
           # check version: version must match a known version (from Cargo.toml,
-          # or a present git tag)
+          # or a present git tag). For example on release runs.
           git diff \
             --ignore-matching-lines '^#' \
             --ignore-matching-lines '^createdAt'\
@@ -35,7 +39,7 @@ runs:
             (echo; echo "There are differences in artifacthub-pkg.yml that have to be checked in.\nIf version is outdated, run \`make --always-make artifacthub-pkg.yml VERSION=<new tag>\`"; exit 1)
         else
           # don't check_version: version must match a future tag that hasn't been
-          # created yet, so let's not check for it
+          # created yet, so let's not check for it. For example on CI runs.
           git diff \
             --ignore-matching-lines '^#' \
             --ignore-matching-lines '^createdAt'\
