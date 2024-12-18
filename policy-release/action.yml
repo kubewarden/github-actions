@@ -36,8 +36,6 @@ runs:
     - name: Publish Wasm policy artifact to OCI registry with the 'latest' tag
       shell: bash
       if: ${{ startsWith(github.ref, 'refs/heads/') }}
-      env:
-        COSIGN_EXPERIMENTAL: 1
       run: |
         set -ex
         echo Pushing :latest policy to OCI container registry
@@ -48,8 +46,6 @@ runs:
     - name: Publish Wasm policy artifact to OCI registry with the version tag and 'latest'
       shell: bash
       if: ${{ ! startsWith(github.ref, 'refs/heads/') }}
-      env:
-        COSIGN_EXPERIMENTAL: 1
       working-directory: ${{ inputs.policy-working-dir }}
       run: |
         set -ex
