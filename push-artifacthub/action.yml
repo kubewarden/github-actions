@@ -27,10 +27,10 @@ runs:
           # we need to replicate the policy-working-dir structure,
           # see https://artifacthub.io/docs/topics/repositories/kubewarden-policies
           #   path/to/packages
-          #   ├── artifacthub-repo.yml
-          #   └── policies/<policy name>
-          #       ├── README.md
-          #       └── artifacthub-pkg.yml
+          #   └── policies
+          #       └── <policy name>
+          #           ├── artifacthub-pkg.yml
+          #           └── README.md
           git add artifacthub-repo.yml
           git add ${{ inputs.policy-working-dir }}/artifacthub-pkg.yml
           git add ${{ inputs.policy-working-dir }}/README.md # used if artifacthub-pkg.yml.readme is missing
@@ -48,4 +48,4 @@ runs:
           git commit -m "Update Artifact Hub files, version $VERSION"
         fi
 
-        git push --force origin artifacthub
+        git push origin artifacthub
