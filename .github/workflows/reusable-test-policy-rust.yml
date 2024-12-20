@@ -46,11 +46,15 @@ jobs:
           else
             # Triggered via branch, version is not checked in artifacthub.
             # Still, `make artifacthub-pkg.yml` needs a proper semver string.
-            # 
-            # Use most recent tag with the number of additional commits on top
-            # of the tagged object & last commit hash (eg. v0.1.11-3-g8a36322),
-            # without the `v` prefix.
-            version=$(git describe --tags | cut -c2-)
+            if [ $(git describe --tags) ]; then
+              # Tag exists, use most recent tag with the number of additional
+              # commits on top of the tagged object & last commit hash (eg.
+              # v0.1.11-3-g8a36322), without the `v` prefix.
+              version=$(git describe --tags | cut -c2-)
+            else
+              # Tag doesn't exist, provide bogus version
+              version="0.0.0-$(git describe --always)-unreleased"
+            fi 
           fi
           echo "version=$version" >> $GITHUB_OUTPUT
       - name: Check that artifacthub-pkg.yml is up-to-date
