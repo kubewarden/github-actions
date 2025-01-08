@@ -29,11 +29,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
-        uses: kubewarden/github-actions/policy-gh-action-dependencies@v3.4.2
+        uses: kubewarden/github-actions/policy-gh-action-dependencies@v3.4.3
       - name: Build and annotate policy
         with:
           generate-sbom: false
-        uses: kubewarden/github-actions/policy-build-go-wasi@v3.4.2
+        uses: kubewarden/github-actions/policy-build-go-wasi@v3.4.3
       - name: Run e2e tests
         run: make e2e-tests
 
@@ -58,7 +58,7 @@ jobs:
           # until https://github.com/actions/checkout/pull/579 is released
           fetch-depth: 0
       - name: Install kwctl
-        uses: kubewarden/github-actions/kwctl-installer@v3.4.2
+        uses: kubewarden/github-actions/kwctl-installer@v3.4.3
       - id: calculate-version
         shell: bash
         run: |
@@ -81,7 +81,7 @@ jobs:
           fi
           echo "version=$version" >> $GITHUB_OUTPUT
       - name: Check that artifacthub-pkg.yml is up-to-date
-        uses: kubewarden/github-actions/check-artifacthub@v3.4.2
+        uses: kubewarden/github-actions/check-artifacthub@v3.4.3
         with:
           version: ${{ steps.calculate-version.outputs.version }}
           check_version: false # must match a git tag that hasn't been created yet, so let's ignore until then

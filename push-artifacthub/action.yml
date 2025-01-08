@@ -48,4 +48,5 @@ runs:
           git commit -m "Update Artifact Hub files, version $VERSION"
         fi
 
+        git pull --rebase
         git push origin artifacthub
