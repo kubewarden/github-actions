@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install dependencies
-        uses: kubewarden/github-actions/policy-gh-action-dependencies@v3.4.4
+        uses: kubewarden/github-actions/policy-gh-action-dependencies@v3.4.5
       - uses: actions/checkout@v4
         with:
           # until https://github.com/actions/checkout/pull/579 is released
@@ -64,12 +64,12 @@ jobs:
       - name: Check that artifacthub-pkg.yml is up-to-date
         # skip when releasing :latest from main, versions will not match
         if: ${{ inputs.artifacthub && ( ! startsWith(github.ref, 'refs/heads/') ) }}
-        uses: kubewarden/github-actions/check-artifacthub@v3.4.4
+        uses: kubewarden/github-actions/check-artifacthub@v3.4.5
         with:
           version: ${{ steps.calculate-version.outputs.version }}
           policy-working-dir: ${{ inputs.policy-working-dir }}
       - name: Install opa
-        uses: kubewarden/github-actions/opa-installer@v3.4.4
+        uses: kubewarden/github-actions/opa-installer@v3.4.5
       - uses: actions/checkout@v4
       - name: Build policy
         working-directory: ${{ inputs.policy-working-dir }}
@@ -87,7 +87,7 @@ jobs:
         run: |
           make e2e-tests
       - name: Release
-        uses: kubewarden/github-actions/policy-release@v3.4.4
+        uses: kubewarden/github-actions/policy-release@v3.4.5
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           oci-target: ${{ inputs.oci-target }}
@@ -104,6 +104,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Push artifacthub files to artifacthub branch
-        uses: kubewarden/github-actions/push-artifacthub@v3.4.4
+        uses: kubewarden/github-actions/push-artifacthub@v3.4.5
         with:
           policy-working-dir: ${{ inputs.policy-working-dir }}
