@@ -14,15 +14,18 @@ runs:
   steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # fetch all history for all branches and tags
     - name: Push up-to-date artifacthub-pkg.yml
       shell: bash
       run: |
+        set -x
         git config user.name "Update artifacthub branch"
         git config user.email github-actions@github.com
 
-        git checkout artifacthub || git checkout --orphan artifacthub
+        git checkout -b main --track origin/main
+        git checkout -b artifacthub --track origin/artifacthub || git checkout --orphan artifacthub
         git reset HEAD -- .
-
         if [ ${{ inputs.policy-working-dir }} != '.' ]; then
           # we need to replicate the policy-working-dir structure,
           # see https://artifacthub.io/docs/topics/repositories/kubewarden-policies
@@ -31,22 +34,35 @@ runs:
           #       └── <policy name>
           #           ├── artifacthub-pkg.yml
           #           └── README.md
+            
+          # checkout the specific files we need from the specific tag that triggered this workflow:
+          git checkout ${{ github.ref_name }} -- artifacthub-repo.yml
+          git checkout ${{ github.ref_name }} -- ${{ inputs.policy-working-dir }}/artifacthub-pkg.yml
+          git checkout ${{ github.ref_name }} -- ${{ inputs.policy-working-dir }}/README.md
+          
+          # add an commit the needed files:
           git add artifacthub-repo.yml
           git add ${{ inputs.policy-working-dir }}/artifacthub-pkg.yml
           git add ${{ inputs.policy-working-dir }}/README.md # used if artifacthub-pkg.yml.readme is missing
-          VERSION=$(sed --posix -n 's,^version: \(.*\),\1,p' ${{ inputs.policy-working-dir}}/artifacthub-pkg.yml)
-          git commit -m "Update Artifact Hub files, version $VERSION"
+          VERSION=$(sed --posix -n 's,^version: \(.*\),\1,p' ${{ inputs.policy-working-dir }}/artifacthub-pkg.yml)
+          git commit -m "Bump ArtifactHub files for ${{ inputs.policy-working-dir }}, version $VERSION"
         else 
           # we put everything flat:
           #   path/to/packages
           #   ├── artifacthub-repo.yml
           #   └── artifacthub-pkg.yml
+           
+          # checkout the specific files we need from the specific tag that triggered this workflow:
+          git checkout ${{ github.ref_name }} -- artifacthub-repo.yml
+          git checkout ${{ github.ref_name }} -- artifacthub-pkg.yml
+          git checkout ${{ github.ref_name }} -- README.md
+
+          # add an commit the needed files:
           git add artifacthub-pkg.yml
           git add artifacthub-repo.yml
           git add README.md # used if artifacthub-pkg.yml.readme is missing
           VERSION=$(sed --posix -n 's,^version: \(.*\),\1,p' artifacthub-pkg.yml)
-          git commit -m "Update Artifact Hub files, version $VERSION"
+          git commit -m "Bump ArtifactHub files, version $VERSION"
         fi
 
-        git pull --rebase
         git push origin artifacthub

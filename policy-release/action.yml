@@ -9,9 +9,11 @@ inputs:
     required: false
     default: annotated-policy.wasm
   oci-target:
+    description: "OCI target repository for the resulting policy artifact"
     required: true
     type: string
   GITHUB_TOKEN:
+    description: "GitHub token to login into ghcr.io"
     required: true
     type: string
   policy-working-dir:
