@@ -15,9 +15,6 @@
   "major": {
     "automerge": false
   },
-  "minor": {
-    "automerge": false
-  },
   "packageRules": [
     {
       "matchUpdateTypes": [
@@ -29,6 +26,19 @@
         "*"
       ],
       "automerge": true,
+      "semanticCommits": "enabled",
+      "semanticCommitType": "build"
+    },
+    {
+      "matchUpdateTypes": [
+        "minor"
+      ],
+      "groupName": "all minor level dependencies",
+      "groupSlug": "all-minor",
+      "matchPackageNames": [
+        "*"
+      ],
+      "automerge": false,
       "semanticCommits": "enabled",
       "semanticCommitType": "build"
     }
