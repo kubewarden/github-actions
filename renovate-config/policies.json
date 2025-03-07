@@ -1,0 +1,70 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "helpers:pinGitHubActionDigests",
+    "schedule:nonOfficeHours"
+  ],
+  "labels": [
+    "area/dependencies"
+  ],
+  "major": {
+    "automerge": false,
+    "extends": [
+      "schedule:earlyMondays"
+    ]
+  },
+  "minor": {
+    "automerge": true
+  },
+  "patch": {
+    "automerge": true
+  },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true,
+    "schedule": ["before 4am on monday"]
+  },
+  "packageRules": [
+    {
+      "matchUpdateTypes": [
+        "patch"
+      ],
+      "groupName": "all patch level dependencies",
+      "groupSlug": "all-patch",
+      "matchPackageNames": [
+        "*"
+      ],
+      "automerge": true,
+      "semanticCommits": "enabled",
+      "semanticCommitType": "build"
+    },
+    {
+      "matchUpdateTypes": [
+        "minor"
+      ],
+      "groupName": "all minor level dependencies",
+      "groupSlug": "all-minor",
+      "matchPackageNames": [
+        "*"
+      ],
+      "automerge": false,
+      "semanticCommits": "enabled",
+      "semanticCommitType": "build"
+    },
+    {
+      "_comment": "bundle github-actions updates together",
+      "description": "Update GitHub Actions",
+      "matchManagers": [
+        "github-actions"
+      ],
+      "groupName": "github-actions",
+      "groupSlug": "github-actions"
+    }
+  ],
+  "rebaseWhen": "behind-base-branch",
+  "prHourlyLimit": 0,
+  "prConcurrentLimit": 0,
+  "semanticCommits": "enabled",
+  "semanticCommitType": "chore"
+}
