@@ -2,7 +2,9 @@
   "extends": [
     "config:base",
     "group:allNonMajor",
-    "schedule:earlyMondays"
+    "helpers:pinGitHubActionDigests",
+    "schedule:earlyMondays",
   ],
-  "labels": ["area/dependencies"]
+  "labels": ["area/dependencies"],
+  "ignoreDeps": ["kubewarden/github-actions"]
 }
