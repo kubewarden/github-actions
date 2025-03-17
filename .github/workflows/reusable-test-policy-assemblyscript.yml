@@ -16,9 +16,9 @@ jobs:
     env:
       NODE_VERSION: 14
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Setup node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4
         with:
           node-version: "${{ env.NODE_VERSION }}"
       - name: Install npm
@@ -30,7 +30,7 @@ jobs:
     if: ${{ inputs.artifacthub }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           # until https://github.com/actions/checkout/pull/579 is released
           fetch-depth: 0
