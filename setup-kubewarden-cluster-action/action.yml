@@ -62,7 +62,7 @@ runs:
 
     - name: "Download Kubewarden controller container image artifact"
       if: ${{ inputs.controller-container-image-artifact != '' }}
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4
       with:
         name: ${{inputs.controller-container-image-artifact}}
         path: /tmp
@@ -74,7 +74,7 @@ runs:
 
     - name: "Download policy server container image artifact"
       if: ${{ inputs.policy-server-container-image-artifact != '' }}
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4
       with:
         name: ${{inputs.policy-server-container-image-artifact}}
         path: /tmp
@@ -85,7 +85,7 @@ runs:
       shell: bash
 
     - name: "Install Helm"
-      uses: azure/setup-helm@v4
+      uses: azure/setup-helm@b9e51907a09c216f16ebe8536097933489208112 # v4
       with:
         version: v3.14.4 # default is latest stable
 

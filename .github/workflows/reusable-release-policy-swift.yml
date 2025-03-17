@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: Install dependencies
         uses: kubewarden/github-actions/policy-gh-action-dependencies@v3.4.8
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           # until https://github.com/actions/checkout/pull/579 is released
           fetch-depth: 0
@@ -55,7 +55,7 @@ jobs:
           sudo apt-get -q update
           sudo apt-get -q install -y wabt binaryen
       - name: Build release
-        uses: swiftwasm/swiftwasm-action@v5.9
+        uses: swiftwasm/swiftwasm-action@5f4ac6cd6d2273f0c6aba57d7281736428f0aeb7 # v5.9
         with:
           shell-action: swift build -c release --triple wasm32-unknown-wasi --build-path build
       - name: optimize policy
