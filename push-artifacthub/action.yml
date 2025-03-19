@@ -12,10 +12,17 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Install kwctl
+      uses: kubewarden/github-actions/kwctl-installer@v4.0.0
     - name: Checkout code
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       with:
         fetch-depth: 0 # fetch all history for all branches and tags
+    - name: generate artifacthub-pkg.yml
+      shell: bash
+      working-directory: ${{ inputs.policy-working-dir }}
+      run: |
+        kwctl scaffold artifacthub --output /tmp/artifacthub-pkg.yml
     - name: Push up-to-date artifacthub-pkg.yml
       shell: bash
       run: |
@@ -37,7 +44,7 @@ runs:
             
           # checkout the specific files we need from the specific tag that triggered this workflow:
           git checkout ${{ github.ref_name }} -- artifacthub-repo.yml
-          git checkout ${{ github.ref_name }} -- ${{ inputs.policy-working-dir }}/artifacthub-pkg.yml
+          mv /tmp/artifacthub-pkg.yml ${{ inputs.policy-working-dir }}/artifacthub-pkg.yml
           git checkout ${{ github.ref_name }} -- ${{ inputs.policy-working-dir }}/README.md
           
           # add an commit the needed files:
@@ -54,7 +61,7 @@ runs:
            
           # checkout the specific files we need from the specific tag that triggered this workflow:
           git checkout ${{ github.ref_name }} -- artifacthub-repo.yml
-          git checkout ${{ github.ref_name }} -- artifacthub-pkg.yml
+          mv /tmp/artifacthub-pkg.yml artifacthub-pkg.yml
           git checkout ${{ github.ref_name }} -- README.md
 
           # add an commit the needed files:

@@ -3,23 +3,11 @@ name: Tests and linters
 on:
   workflow_call:
     inputs:
-      artifacthub:
-        description: "check artifacthub-pkg.yml for submission to ArtifactHub"
-        required: false
-        type: boolean
-        default: true
       policy-working-dir:
         description: "working directory of the policy. Useful for repos with policies in folders"
         required: false
         type: string
         default: .
-      policy-version:
-        description: |
-          Release version of the policy, without 'v' prefix. Optional.
-          Defaults to extracting the version from tag if tag present.
-          E.g: tag "v0.1.0", policy-version=0.1.0
-        required: false
-        type: string
     secrets: {}
 
 jobs:
@@ -28,53 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Install opa
-        uses: kubewarden/github-actions/opa-installer@v3.4.8
+        uses: kubewarden/github-actions/opa-installer@v4.0.0
       - name: Run unit tests
         working-directory: ${{ inputs.policy-working-dir }}
         run: make test
-  check-artifacthub:
-    # construct updated artifacthub-pkg.yml and check it contains the correct values
-    if: ${{ inputs.artifacthub }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-        with:
-          # until https://github.com/actions/checkout/pull/579 is released
-          fetch-depth: 0
-      - name: Install kwctl
-        uses: kubewarden/github-actions/kwctl-installer@v3.4.8
-      - id: calculate-version
-        shell: bash
-        run: |
-          if [ "${{ inputs.policy-version }}" != "" ];then 
-            # If present, it means we are dealing with tags in the form of `PolicyName/v0.1.0`.
-            # Use the passed policy-version, already without `v` prefix
-            version=${{ inputs.policy-version }}
-          else
-            if [ ${{ startsWith(github.ref, 'refs/tags/v') }} == true ]; then
-              # Triggered via normal tag.
-              # Use the latest tag (e.g: v0.1.11) without the `v` prefix.
-              version=$(git describe --tags --abbrev=0 | cut -c2-)
-            else
-              # Triggered via branch, version is not checked in artifacthub.
-              # Still, `make artifacthub-pkg.yml` needs a proper semver string.
-              if [ $(git describe --tags) ]; then
-                # Tag exists, use most recent tag with the number of additional
-                # commits on top of the tagged object & last commit hash (eg.
-                # v0.1.11-3-g8a36322), without the `v` prefix.
-                version=$(git describe --tags | cut -c2-)
-              else
-                # Tag doesn't exist, provide bogus version
-                version="0.0.0-$(git describe --always)-unreleased"
-              fi 
-            fi
-          fi
-          echo "version=$version" >> $GITHUB_OUTPUT
-      - name: Check that artifacthub-pkg.yml is up-to-date
-        # only makes sense to run this check if artifacthub-pkg.yml has been
-        # updated for an upcoming release.
-        uses: kubewarden/github-actions/check-artifacthub@v3.4.8
-        with:
-          version: ${{ steps.calculate-version.outputs.version }}
-          check_version: false # must match a git tag that hasn't been created yet, so let's ignore until then
-          policy-working-dir: ${{ inputs.policy-working-dir }}
