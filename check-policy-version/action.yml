@@ -1,0 +1,30 @@
+name: "kubewarden-check-policy-version"
+description: "Check that policy version annotation is up-to-date"
+branding:
+  icon: "package"
+  color: "blue"
+inputs:
+  expected-version:
+    description: "The expected value of the version annotation. E.g: 0.1.0"
+    required: true
+    type: string
+  policy-working-dir:
+    description: "working directory of the policy. Useful for repos with policies in folders"
+    required: false
+    type: string
+    default: .
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+    - name: Check that io.kubewarden.policy.version annotation is up-to-date
+      shell: bash
+      working-directory: ${{ inputs.policy-working-dir }}
+      run: |
+        VERSION=$(grep 'io.kubewarden.policy.version' metadata.yml | awk '{print $2}' | tr -d '"')
+
+        if [ "$VERSION" != "${{ inputs.expected-version }}" ]; then
+          echo "The value of io.kubewarden.policy.version annotation is not in sync with the expected version: '${VERSION}' != '${{ inputs.expected-version }}'"
+          exit 1
+        fi
