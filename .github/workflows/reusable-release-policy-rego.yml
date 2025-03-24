@@ -11,14 +11,6 @@ on:
         required: false
         type: boolean
         default: true
-      release-catalog:
-        description: "Update the Kubewarden policy catalog after a release"
-        type: boolean
-        default: false
-      policy-name:
-        description: "The name of the policy. This is used in monorepos where multiple policies can be released"
-        required: false
-        type: string
       policy-working-dir:
         description: "working directory of the policy. Useful for repos with policies in folders"
         required: false
@@ -31,10 +23,6 @@ on:
           E.g: tag "v0.1.0", policy-version=0.1.0
         required: false
         type: string
-    secrets:
-      WORKFLOW_PAT:
-        description: "Personal access token used to trigger the policy-catalog workflow"
-        required: false
 
 jobs:
   release:
@@ -119,15 +107,3 @@ jobs:
         uses: kubewarden/github-actions/push-artifacthub@v4.1.0
         with:
           policy-working-dir: ${{ inputs.policy-working-dir }}
-  release-catalog:
-    # skip when releasing :latest from main, versions will not match
-    if: ${{ inputs.artifacthub && ( ! startsWith(github.ref, 'refs/heads/') ) }} && inputs.release-catalog
-    needs: release
-    runs-on: ubuntu-latest
-    steps:
-      - name: "Update the Kubewarden policy catalog after a release"
-        uses: kubewarden/github-actions/policy-release-catalog@v4.1.0
-        with:
-          policy-name: ${{ inputs.policy-name }}
-          policy-working-dir: ${{ inputs.policy-working-dir }}
-          WORKFLOW_PAT: ${{ secrets.WORKFLOW_PAT }}

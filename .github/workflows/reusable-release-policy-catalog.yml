@@ -1,0 +1,48 @@
+name: Kubewarden Policy Catalog Release
+
+on:
+  workflow_call:
+    inputs:
+      policy-name:
+        description: "The name of the policy. This is used in monorepos where multiple policies can be released"
+        required: false
+        type: string
+      policy-working-dir:
+        description: "working directory of the policy. Useful for repos with policies in folders"
+        required: false
+        type: string
+        default: "."
+    secrets:
+      WORKFLOW_PAT:
+        description: "Personal access token used to trigger the policy-catalog workflow"
+        required: true
+
+jobs:
+  update-catalog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare catalog payload
+        id: catalog-payload
+        run: |
+          PAYLOAD='{
+            "owner": "${{ github.repository_owner }}",
+            "repo": "${{ github.event.repository.name }}",
+            "tag": "${{ github.ref_name }}"
+          }'
+
+          if [ -n "${{ inputs.policy-name }}" ]; then
+            PAYLOAD=$(echo $PAYLOAD | jq '. + {"chart_dir": "${{ inputs.policy-name }}"}')
+          fi
+
+          if [ "${{ inputs.policy-working-dir }}" != "." ]; then
+            PAYLOAD=$(echo $PAYLOAD | jq '. + {"artifacthub_pkg_path": "${{ inputs.policy-working-dir }}/artifacthub-pkg.yml"}')
+          fi
+
+          echo "payload=$(echo $PAYLOAD | jq -c)" >> $GITHUB_OUTPUT
+      - name: Update policy catalog
+        uses: peter-evans/repository-dispatch@ff45666b9427631e3450c54a1bcbee4d9ff4d7c0 # v3.0.0
+        with:
+          token: ${{ secrets.WORKFLOW_PAT }}
+          repository: kubewarden/policy-catalog
+          event-type: release-policy
+          client-payload: ${{ steps.catalog-payload.outputs.payload }}
