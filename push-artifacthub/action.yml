@@ -22,7 +22,7 @@ runs:
       shell: bash
       working-directory: ${{ inputs.policy-working-dir }}
       run: |
-        kwctl scaffold artifacthub --output /tmp/artifacthub-pkg.yml
+        kwctl scaffold artifacthub --output ${{ runner.temp }}/artifacthub-pkg.yml
     - name: Push up-to-date artifacthub-pkg.yml
       shell: bash
       run: |
@@ -44,7 +44,8 @@ runs:
             
           # checkout the specific files we need from the specific tag that triggered this workflow:
           git checkout ${{ github.ref_name }} -- artifacthub-repo.yml
-          mv /tmp/artifacthub-pkg.yml ${{ inputs.policy-working-dir }}/artifacthub-pkg.yml
+          mkdir -p ${{ inputs.policy-working-dir }}
+          mv ${{ runner.temp }}/artifacthub-pkg.yml ${{ inputs.policy-working-dir }}/artifacthub-pkg.yml
           git checkout ${{ github.ref_name }} -- ${{ inputs.policy-working-dir }}/README.md
           
           # add an commit the needed files:
@@ -61,7 +62,7 @@ runs:
            
           # checkout the specific files we need from the specific tag that triggered this workflow:
           git checkout ${{ github.ref_name }} -- artifacthub-repo.yml
-          mv /tmp/artifacthub-pkg.yml artifacthub-pkg.yml
+          mv ${{ runner.temp }}/artifacthub-pkg.yml artifacthub-pkg.yml
           git checkout ${{ github.ref_name }} -- README.md
 
           # add an commit the needed files:
