@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Install opa
-        uses: kubewarden/github-actions/opa-installer@v4.0.0
+        uses: kubewarden/github-actions/opa-installer@v4.1.0
       - name: Run unit tests
         working-directory: ${{ inputs.policy-working-dir }}
         run: make test
