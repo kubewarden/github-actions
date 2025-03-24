@@ -11,6 +11,14 @@ on:
         required: false
         type: boolean
         default: true
+      release-catalog:
+        description: "Update the Kubewarden policy catalog after a release"
+        type: boolean
+        default: false
+    secrets:
+      WORKFLOW_PAT:
+        description: "Personal access token used to trigger the policy-catalog workflow"
+        required: false
 
 jobs:
   release:
@@ -72,3 +80,13 @@ jobs:
     steps:
       - name: Push artifacthub files to artifacthub branch
         uses: kubewarden/github-actions/push-artifacthub@v4.0.0
+  release-catalog:
+    # skip when releasing :latest from main, versions will not match
+    if: ${{ inputs.artifacthub && ( ! startsWith(github.ref, 'refs/heads/') ) }} && inputs.release-catalog
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Update the Kubewarden policy catalog after a release"
+        uses: kubewarden/github-actions/policy-release-catalog@v4.0.0
+        with:
+          WORKFLOW_PAT: ${{ secrets.WORKFLOW_PAT }}
