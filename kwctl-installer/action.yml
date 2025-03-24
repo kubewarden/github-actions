@@ -16,16 +16,21 @@ runs:
         #!/bin/bash
         set -e
 
+        # Build name of gihub release asset
+        OS=$(echo "${{ runner.os }}" | tr '[:upper:]' '[:lower:]' | sed 's/macos/darwin/')
+        ARCH=$(echo "${{ runner.arch }}" | sed -E 's/X64/x86_64/; s/ARM64/aarch64/')
+        ASSET="kwctl-${OS}-${ARCH}"
+
         INSTALL_DIR=$HOME/.kwctl
         RELEASE_URL="download/${{ inputs.KWCTL_VERSION }}"
         [ "${{ inputs.KWCTL_VERSION }}" == "latest" ] && RELEASE_URL="latest/download"
 
         mkdir -p $INSTALL_DIR
-        curl -sL https://github.com/kubewarden/kwctl/releases/$RELEASE_URL/kwctl-linux-x86_64.zip -o $INSTALL_DIR/kwctl-linux-x86_64.zip
-        unzip -o $INSTALL_DIR/kwctl-linux-x86_64.zip -d $INSTALL_DIR
-        rm $INSTALL_DIR/kwctl-linux-x86_64.zip
+        curl -sL https://github.com/kubewarden/kwctl/releases/$RELEASE_URL/$ASSET.zip -o $INSTALL_DIR/$ASSET.zip
+        unzip -o $INSTALL_DIR/$ASSET.zip -d $INSTALL_DIR
+        rm $INSTALL_DIR/$ASSET.zip
 
-        mv $INSTALL_DIR/kwctl-linux-x86_64 $INSTALL_DIR/kwctl
+        mv $INSTALL_DIR/$ASSET $INSTALL_DIR/kwctl
         chmod 755 $INSTALL_DIR/kwctl
         echo $INSTALL_DIR >> $GITHUB_PATH
 
