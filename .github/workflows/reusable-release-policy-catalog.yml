@@ -8,13 +8,16 @@ on:
         required: false
         type: string
       policy-working-dir:
-        description: "working directory of the policy. Useful for repos with policies in folders"
+        description: "Working directory of the policy. Useful for repos with policies in folders"
         required: false
         type: string
         default: "."
     secrets:
-      WORKFLOW_PAT:
-        description: "Personal access token used to trigger the policy-catalog workflow"
+      APP_ID:
+        description: "GitHub App ID used to generate a token for the repository dispatch"
+        required: true
+      APP_PRIVATE_KEY:
+        description: "GitHub App Private Key used to generate a token for the repository dispatch"
         required: true
 
 jobs:
@@ -22,6 +25,14 @@ jobs:
     if: ${{ startsWith(github.ref, 'refs/tags/') }}
     runs-on: ubuntu-latest
     steps:
+      - name: Generate token
+        uses: actions/create-github-app-token@af35edadc00be37caa72ed9f3e6d5f7801bfdf09 # v1.11.7
+        id: generate-token
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          # Set the owner, so the token can be used for cross-repo dispatch
+          owner: ${{ github.repository_owner }}
       - name: Prepare catalog payload
         id: catalog-payload
         run: |
@@ -43,7 +54,7 @@ jobs:
       - name: Release policy catalog
         uses: peter-evans/repository-dispatch@ff45666b9427631e3450c54a1bcbee4d9ff4d7c0 # v3.0.0
         with:
-          token: ${{ secrets.WORKFLOW_PAT }}
+          token: ${{ steps.generate-token.outputs.token }}
           repository: kubewarden/policy-catalog
           event-type: release-policy
           client-payload: ${{ steps.catalog-payload.outputs.payload }}
