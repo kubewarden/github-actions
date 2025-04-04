@@ -60,3 +60,5 @@ jobs:
 
       - name: Trigger release workflow
         run: gh workflow run release.yml
+        env:
+          GH_TOKEN: ${{ github.token }}
