@@ -1,0 +1,58 @@
+---
+name: Tag and Release on PR Merge
+
+on:
+  workflow_call:
+    inputs:
+      trigger_release:
+        type: boolean
+        description: "Tag and trigger release manually"
+        required: false
+        default: true
+
+jobs:
+  tag-and-release:
+    if: >
+      github.event.pull_request.merged == true &&
+      contains(github.event.pull_request.labels.*.name, 'trigger-release') ||
+      github.event.inputs.trigger_release == 'true'
+    name: Tag and push, triggering release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from metadata.yml
+        id: extract-version
+        run: |
+          if [ -f metadata.yml ]; then
+            VERSION=$(yq e '.annotations."io.kubewarden.policy.version"' metadata.yml)
+            if [ -z "$VERSION" ]; then
+              echo "annotation 'io.kubewarden.policy.version' is missing in metadata.yml"
+              exit 1
+            fi
+          elif [ -f metadata.yaml ]; then
+            VERSION=$(yq e '.annotations."io.kubewarden.policy.version"' metadata.yaml)
+            if [ -z "$VERSION" ]; then
+              echo "annotation 'io.kubewarden.policy.version' is missing in metadata.yaml"
+              exit 1
+            fi
+          else
+            echo "Error: metadata.yml or metadata.yaml not found" >&2
+            exit 1
+          fi
+          echo "version=$VERSION" >> $GITHUB_ENV
+
+      - name: Configure Git author
+        run: |
+          git config user.name "Kubewarden bot"
+          git config user.email "cncf-kubewarden-maintainers@lists.cncf.io"
+
+      - name: Create and push tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git tag -a "v$VERSION" -m "Release version $VERSION"
+          git push origin "v$VERSION"

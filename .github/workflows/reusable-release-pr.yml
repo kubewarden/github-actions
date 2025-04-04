@@ -1,0 +1,95 @@
+name: Open a PR that prepares the policy for release
+
+on:
+  workflow_call:
+    secrets:
+      APP_ID:
+        description: "GitHub App ID used to generate a token for the repository dispatch"
+        required: true
+      APP_PRIVATE_KEY:
+        description: "GitHub App Private Key used to generate a token for the repository dispatch"
+        required: true
+
+jobs:
+  open-release-pr:
+    name: Open a PR that prepares policy for release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Check for changes since the last tag
+        id: check-changes
+        shell: bash
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            echo "No previous tag found. Proceeding with the workflow."
+            echo "changes=true" >> $GITHUB_ENV
+          else
+            echo "Last tag: $LAST_TAG"
+            CHANGES=$(git diff --name-only "$LAST_TAG"..HEAD)
+            if [ -z "$CHANGES" ]; then
+              echo "No changes detected since the last tag."
+              echo "changes=false" >> $GITHUB_ENV
+              exit 0
+            else
+              echo "Changes detected since the last tag."
+              echo "changes=true" >> $GITHUB_ENV
+            fi
+          fi
+
+      - name: Install Updatecli in the runner
+        if: env.changes == 'true'
+        uses: updatecli/updatecli-action@f11c0cb3aca7a018d6000dc86a57eb3442277219 # v2.81.0
+
+      - uses: actions/create-github-app-token@21cfef2b496dd8ef5b904c159339626a10ad380e # v1.11.6
+        if: env.changes == 'true'
+        id: generate-token
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Restore cargo-set-version from cache
+        if: env.changes == 'true'
+        id: restore-cache
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: ~/.cargo/bin
+          key: cargo-edit-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-edit-${{ runner.os }}-
+
+      - name: Install cargo-set-version
+        if: env.changes == 'true' && ! steps.restore-cache.outputs.cache-hit
+        run: cargo install cargo-edit
+
+      - name: Create values.yaml for Updatecli
+        if: env.changes == 'true'
+        run: |
+          cat <<EOF > values.yaml
+          github:
+            owner: "${{ github.repository_owner }}"
+            repo: "${{ github.event.repository.name }}"
+            branch: "main"
+            git_author: "Kubewarden bot"
+            git_email: "cncf-kubewarden-maintainers@lists.cncf.io"
+
+          pr:
+            labels:
+              - "TRIGGER-RELEASE"
+              - "kind/chore"
+              - "area/release"
+            reviewers:
+              - "kubewarden/kubewarden-developers"
+          EOF
+
+      - name: Open PR with updatecli
+        if: env.changes == 'true'
+        id: open-release-pr
+        env:
+          UPDATECLI_GITHUB_OWNER: ${{ github.repository_owner }}
+          UPDATECLI_GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
+        run: |-
+          updatecli apply ghcr.io/kubewarden/automation/updatecli/open-release-pr:0.1.0 \
+            --values $(pwd)/values.yaml --debug
