@@ -81,6 +81,7 @@ jobs:
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
 
       - name: Restore cargo-set-version from cache
+        if: hashFiles('**/Cargo.toml') != ''
         id: restore-cache
         uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
@@ -90,7 +91,9 @@ jobs:
             cargo-edit-${{ runner.os }}-
 
       - name: Install cargo-set-version
-        if: ! steps.restore-cache.outputs.cache-hit
+        if: >
+          hashFiles('**/Cargo.toml') != '' &&
+          ! steps.restore-cache.outputs.cache-hit
         run: cargo install cargo-edit
 
       - name: Create values.yaml for Updatecli
