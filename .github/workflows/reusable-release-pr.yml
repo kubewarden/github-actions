@@ -91,5 +91,5 @@ jobs:
           UPDATECLI_GITHUB_OWNER: ${{ github.repository_owner }}
           UPDATECLI_GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: |-
-          updatecli apply ghcr.io/kubewarden/automation/updatecli/open-release-pr:0.1.0 \
+          updatecli apply ghcr.io/kubewarden/automation/updatecli/open-release-pr:0.1.1 \
             --values $(pwd)/values.yaml
