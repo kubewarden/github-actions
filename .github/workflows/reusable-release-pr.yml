@@ -11,8 +11,40 @@ on:
         required: true
 
 jobs:
+  check-changes:
+    name: Check for changes since the last tag
+    runs-on: ubuntu-latest
+    outputs:
+      changes: ${{ steps.check-changes.outputs.changes }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Check for changes since the last tag
+        id: check-changes
+        shell: bash
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            echo "No previous tag found. Proceeding with the workflow."
+            echo "changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "Last tag: $LAST_TAG"
+            CHANGES=$(git diff --name-only "$LAST_TAG"..HEAD)
+            if [ -z "$CHANGES" ]; then
+              echo "No changes detected since the last tag."
+              echo "changes=false" >> $GITHUB_OUTPUT
+            else
+              echo "Changes detected since the last tag."
+              echo "changes=true" >> $GITHUB_OUTPUT
+            fi
+          fi
+
   open-release-pr:
     name: Open a PR that prepares policy for release
+    needs: check-changes
+    if: needs.check-changes.outputs.changes == 'true'
+
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -40,18 +72,15 @@ jobs:
           fi
 
       - name: Install Updatecli in the runner
-        if: env.changes == 'true'
         uses: updatecli/updatecli-action@f11c0cb3aca7a018d6000dc86a57eb3442277219 # v2.81.0
 
       - uses: actions/create-github-app-token@21cfef2b496dd8ef5b904c159339626a10ad380e # v1.11.6
-        if: env.changes == 'true'
         id: generate-token
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
 
       - name: Restore cargo-set-version from cache
-        if: env.changes == 'true'
         id: restore-cache
         uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
@@ -61,11 +90,10 @@ jobs:
             cargo-edit-${{ runner.os }}-
 
       - name: Install cargo-set-version
-        if: env.changes == 'true' && ! steps.restore-cache.outputs.cache-hit
+        if: ! steps.restore-cache.outputs.cache-hit
         run: cargo install cargo-edit
 
       - name: Create values.yaml for Updatecli
-        if: env.changes == 'true'
         run: |
           cat <<EOF > values.yaml
           github:
@@ -85,7 +113,6 @@ jobs:
           EOF
 
       - name: Open PR with updatecli
-        if: env.changes == 'true'
         id: open-release-pr
         env:
           UPDATECLI_GITHUB_OWNER: ${{ github.repository_owner }}
