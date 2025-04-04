@@ -43,7 +43,8 @@ jobs:
             echo "Error: metadata.yml or metadata.yaml not found" >&2
             exit 1
           fi
-          echo "version=$VERSION" >> $GITHUB_ENV
+          echo "found version $VERSION"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Configure Git author
         run: |
