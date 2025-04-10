@@ -7,11 +7,9 @@ inputs:
   expected-version:
     description: "The expected value of the version annotation. E.g: 0.1.0"
     required: true
-    type: string
   policy-working-dir:
     description: "working directory of the policy. Useful for repos with policies in folders"
     required: false
-    type: string
     default: .
 runs:
   using: "composite"

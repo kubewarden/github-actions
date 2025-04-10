@@ -11,20 +11,16 @@ inputs:
   oci-target:
     description: "OCI target repository for the resulting policy artifact"
     required: true
-    type: string
   GITHUB_TOKEN:
     description: "GitHub token to login into ghcr.io"
     required: true
-    type: string
   policy-working-dir:
     description: "working directory of the policy. Useful for repos with policies in folders"
     required: false
-    type: string
     default: .
   policy-version:
     description: "release version of the policy without `v` prefix. E.g: 0.1.0"
     required: true
-    type: string
 
 runs:
   using: "composite"
