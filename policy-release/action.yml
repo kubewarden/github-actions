@@ -58,18 +58,65 @@ runs:
 
         echo Keyless signing of policy using cosign
         cosign sign --yes ${IMMUTABLE_REF}
-    - name: Create release
+    - name: Get release ID from the release created by release drafter
       if: ${{ ! startsWith(github.ref, 'refs/heads/') }}
-      uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # v2.2.1
-      env:
-        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+      uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
       with:
-        tag_name: ${{ github.ref }}
-        name: ${{ github.ref_name }}
-        draft: false
-        prerelease: ${{ contains(inputs.policy-version, '-alpha') || contains(inputs.policy-version, '-beta') || contains(inputs.policy-version, '-rc') }}
-        files: |
-          ${{ inputs.policy-working-dir }}/policy.wasm
-          ${{ inputs.policy-working-dir }}/policy-sbom.spdx.json
-          ${{ inputs.policy-working-dir }}/policy-sbom.spdx.cert
-          ${{ inputs.policy-working-dir }}/policy-sbom.spdx.sig
+        script: |
+          let releases = await github.rest.repos.listReleases({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+          });
+          for (const release of releases.data) {
+            if (release.draft) {
+                    core.info(release)
+                    core.exportVariable('RELEASE_ID', release.id)
+                    return
+            }
+          }
+          core.setFailed(`Draft release not found`)
+    - name: Upload release assets
+      if: ${{ ! startsWith(github.ref, 'refs/heads/') }}
+      id: upload_release_assets
+      uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+      with:
+        script: |
+          let fs = require('fs');
+          let path = require('path');
+
+          let files = [
+            'policy.wasm',
+            'policy-sbom.spdx.json',
+            'policy-sbom.spdx.cert',
+            'policy-sbom.spdx.sig']
+          const {RELEASE_ID} = process.env
+
+          for (const file of files) {
+            let file_data = fs.readFileSync(file);
+
+            let response = await github.rest.repos.uploadReleaseAsset({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: `${RELEASE_ID}`,
+              name: path.basename(file),
+              data: file_data,
+            });
+          }
+    - name: Publish release
+      if: ${{ ! startsWith(github.ref, 'refs/heads/') }}
+      uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+      with:
+        script: |
+          const {RELEASE_ID} = process.env
+          const TAG_NAME = "${{ github.ref_name }}";
+          isPreRelease = ${{ contains(github.ref_name, '-alpha') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc') }}
+          github.rest.repos.updateRelease({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            release_id: `${RELEASE_ID}`,
+            draft: false,
+            tag_name: TAG_NAME,
+            name: TAG_NAME,
+            prerelease: isPreRelease,
+            make_latest: !isPreRelease
+          });
