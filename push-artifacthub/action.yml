@@ -7,7 +7,6 @@ inputs:
   policy-working-dir:
     description: "working directory of the policy. Useful for repos with policies in folders"
     required: false
-    type: string
     default: .
 runs:
   using: "composite"
