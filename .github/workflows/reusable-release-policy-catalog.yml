@@ -47,7 +47,7 @@ jobs:
           fi
 
           if [ "${{ inputs.policy-working-dir }}" != "." ]; then
-            PAYLOAD=$(echo $PAYLOAD | jq '. + {"artifacthub_pkg_path": "${{ inputs.policy-working-dir }}/artifacthub-pkg.yml"}')
+            PAYLOAD=$(echo $PAYLOAD | jq '. + {"policy_working_dir": "${{ inputs.policy-working-dir }}"}')
           fi
 
           echo "payload=$(echo $PAYLOAD | jq -c)" >> $GITHUB_OUTPUT
