@@ -75,16 +75,19 @@ runs:
       if: ${{ ! startsWith(github.ref, 'refs/heads/') }}
       id: upload_release_assets
       uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+      env:
+        POLICY_WORKING_DIR: ${{ inputs.policy-working-dir }}
       with:
         script: |
           let fs = require('fs');
           let path = require('path');
+          let workingDir = process.env.POLICY_WORKING_DIR || '.';
 
           let files = [
-            'policy.wasm',
-            'policy-sbom.spdx.json',
-            'policy-sbom.spdx.cert',
-            'policy-sbom.spdx.sig']
+            `${workingDir}/policy.wasm`,
+            `${workingDir}/policy-sbom.spdx.json`,
+            `${workingDir}/policy-sbom.spdx.cert`,
+            `${workingDir}/policy-sbom.spdx.sig`]
           const {RELEASE_ID} = process.env
 
           for (const file of files) {
