@@ -11,9 +11,7 @@ runs:
     - name: Install kwctl
       uses: kubewarden/github-actions/kwctl-installer@v4.4.4
     - name: Install bats
-      uses: mig4/setup-bats@af9a00deb21b5d795cabfeaa8d9060410377686d # v1.2.0
-      with:
-        bats-version: 1.11.0
+      run: sudo apt install -y bats
     - name: Install SBOM generator tool
       uses: kubewarden/github-actions/sbom-generator-installer@v4.4.4
     - name: Install SBOM generator tool
