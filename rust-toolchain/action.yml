@@ -1,0 +1,50 @@
+name: "rust-toolchain"
+description: "Install a given rust toolchain"
+branding:
+  icon: "package"
+  color: "blue"
+inputs:
+  profile:
+    description: "Toolchain profile to be installed"
+    required: false
+    default: "default"
+  toolchain:
+    description: "Rust toolchain to be installed"
+    required: false
+    default: "stable"
+  override:
+    description: "Override the toolchain for the current directory"
+    required: false
+    type: boolean
+    default: false
+  components:
+    description: "Comma-separated list of the additional components to install, ex. clippy, rustfmt"
+    required: false
+    default: ""
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      name: Install toolchain
+      run: |
+        set -e
+
+        if ! command -v rustup &> /dev/null; then
+          echo "Error: rustup is not installed. Please install it first."
+          exit 1
+        fi
+
+        components_flag=""
+        if [[ -n "${{ inputs.components }}" ]]; then
+          components_flag="--component ${{ inputs.components }}"
+        fi
+
+
+        echo "Installing toolchain ${{ inputs.toolchain }} with profile ${{ inputs.profile }} and components ${{ inputs.components }}"
+        rustup toolchain install ${{ inputs.toolchain }} --profile ${{ inputs.profile }} $components_flag
+
+        if ${{ inputs.override }}; then
+          rustup override set ${{ inputs.toolchain }}
+          echo "Override the toolchain for the current directory"
+        fi
+        rustup show
