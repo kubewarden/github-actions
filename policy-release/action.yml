@@ -103,6 +103,7 @@ runs:
 
           let files = [
             `${workingDir}/policy.wasm`,
+          ]
           const {RELEASE_ID} = process.env
 
           for (const file of files) {
