@@ -12,6 +12,7 @@ runs:
       uses: kubewarden/github-actions/kwctl-installer@v4.4.5
     - name: Install bats
       run: sudo apt install -y bats
+      shell: bash
     - name: Install SBOM generator tool
       uses: kubewarden/github-actions/sbom-generator-installer@v4.4.5
     - name: Install SBOM generator tool
