@@ -25,27 +25,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # v1.0.3
-        with:
-          command: check
+      - name: Setup rust toolchain
+        run: |
+          rustup toolchain install stable  --profile minimal --target wasm32-wasip1
+          rustup override set stable
+        shell: bash
+      - name: Run Cargo check
+        run: cargo check
+        shell: bash
+
   test:
     name: Test Suite
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # v1.0.3
-        with:
-          command: test
+      - name: Setup rust toolchain
+        run: |
+          rustup toolchain install stable  --profile minimal --target wasm32-wasip1
+          rustup override set stable
+        shell: bash
+      - name: Run Cargo test
+        run: cargo test
+        shell: bash
   e2e-tests:
     name: E2E testSuite
     runs-on: ubuntu-latest
@@ -65,28 +66,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - run: rustup component add rustfmt
-      - uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # v1.0.3
-        with:
-          command: fmt
-          args: --all -- --check
+      - name: Setup rust toolchain
+        run: |
+          rustup toolchain install stable  --profile minimal --target wasm32-wasip1 --component rustfmt
+          rustup override set stable
+        shell: bash
+      - name: Run cargo fmt
+        run: cargo fmt --all -- --check
+        shell: bash
+
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - run: rustup component add clippy
-      - uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # v1.0.3
-        with:
-          command: clippy
-          args: -- -D warnings
+      - name: Setup rust toolchain
+        run: |
+          rustup toolchain install stable  --profile minimal --target wasm32-wasip1 --component clippy
+          rustup override set stable
+      - name: Run Cargo clippy
+        run: cargo clippy -- -D warnings
