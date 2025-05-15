@@ -1,7 +1,7 @@
 {
   "extends": [
     "config:recommended",
-    "helpers:pinGitHubActionDigests",
+    "helpers:pinGitHubActionDigestsToSemver",
     "schedule:nonOfficeHours"
   ],
   "labels": [
@@ -9,7 +9,9 @@
   ],
   "lockFileMaintenance": {
     "enabled": true,
-    "schedule": ["before 4am on monday"],
+    "schedule": [
+      "before 4am on monday"
+    ],
     "automerge": true
   },
   "major": {
