@@ -103,6 +103,9 @@ runs:
 
           let files = [
             `${workingDir}/policy.wasm`,
+            `${workingDir}/policy-sbom.spdx.json`,
+            `${workingDir}/policy-sbom.spdx.cert`,
+            `${workingDir}/policy-sbom.spdx.sig`,
           ]
           const {RELEASE_ID} = process.env
 
