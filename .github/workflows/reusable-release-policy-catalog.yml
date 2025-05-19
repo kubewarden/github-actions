@@ -57,6 +57,7 @@ jobs:
             PAYLOAD=$(echo "$PAYLOAD" | jq --arg policy_working_dir "${{ inputs.policy-working-dir }}" '.client_payload.policy_working_dir = $policy_working_dir')
           fi
 
+          echo "$PAYLOAD"
           echo "payload=$PAYLOAD" >> payload.json
       - name: Release policy catalog
         env:
