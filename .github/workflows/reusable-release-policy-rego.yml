@@ -93,6 +93,7 @@ jobs:
           oci-target: ${{ inputs.oci-target }}
           policy-working-dir: ${{ inputs.policy-working-dir }}
           policy-version: ${{ steps.calculate-version.outputs.version }}
+          expect-sbom: "false"
   push-artifacthub:
     # skip when releasing :latest from main, versions will not match
     if: ${{ inputs.artifacthub && ( ! startsWith(github.ref, 'refs/heads/') ) }}
