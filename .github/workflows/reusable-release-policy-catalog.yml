@@ -58,7 +58,7 @@ jobs:
           fi
 
           echo "$PAYLOAD"
-          echo "payload=$PAYLOAD" >> payload.json
+          echo "$PAYLOAD" >> payload.json
       - name: Release policy catalog
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
