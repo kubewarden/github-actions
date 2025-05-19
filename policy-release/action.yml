@@ -97,7 +97,6 @@ runs:
       if: ${{ ! startsWith(github.ref, 'refs/heads/')  && inputs.policy-working-dir == '.' }}
       # if we are on a single repo, we obtain the last draft release as it contains the changelog
       # and edit it by adding the artifacts. Then we mark the release as latest
-      id: upload_release_assets
       uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
       env:
         POLICY_WORKING_DIR: ${{ inputs.policy-working-dir }}
@@ -130,7 +129,6 @@ runs:
 
       # if we are on a single repo, we obtain the last draft release as it contains the changelog
       # and edit it by adding the artifacts. Then we mark the release as latest
-      id: upload_release_assets
       uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
       env:
         POLICY_WORKING_DIR: ${{ inputs.policy-working-dir }}
