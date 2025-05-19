@@ -21,6 +21,12 @@ inputs:
   policy-version:
     description: "release version of the policy without `v` prefix. E.g: 0.1.0"
     required: true
+  expect-sbom:
+    required: false
+    description: "expect SBOM files (spdx, etc)"
+    # Boolean input should be compared with string
+    # until https://github.com/actions/runner/issues/2238 resolved
+    default: "true"
 
 runs:
   using: "composite"
@@ -87,7 +93,7 @@ runs:
             }
           }
           core.setFailed(`Draft release not found`)
-    - name: Upload release assets
+    - name: Upload policy.wasm asset
       if: ${{ ! startsWith(github.ref, 'refs/heads/')  && inputs.policy-working-dir == '.' }}
       # if we are on a single repo, we obtain the last draft release as it contains the changelog
       # and edit it by adding the artifacts. Then we mark the release as latest
@@ -103,6 +109,38 @@ runs:
 
           let files = [
             `${workingDir}/policy.wasm`,
+          ]
+          const {RELEASE_ID} = process.env
+
+          for (const file of files) {
+            let file_data = fs.readFileSync(file);
+
+            let response = await github.rest.repos.uploadReleaseAsset({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: `${RELEASE_ID}`,
+              name: path.basename(file),
+              data: file_data,
+            });
+          }
+    - name: Upload SPDX assets
+      if: ${{ ! startsWith(github.ref, 'refs/heads/')  && inputs.policy-working-dir == '.' && inputs.expect-sbom == 'true' }}
+      # this step is done since some languages (like Rego) don't have library dependencies or the
+      # sbom generator doesn't support them.
+
+      # if we are on a single repo, we obtain the last draft release as it contains the changelog
+      # and edit it by adding the artifacts. Then we mark the release as latest
+      id: upload_release_assets
+      uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+      env:
+        POLICY_WORKING_DIR: ${{ inputs.policy-working-dir }}
+      with:
+        script: |
+          let fs = require('fs');
+          let path = require('path');
+          let workingDir = process.env.POLICY_WORKING_DIR || '.';
+
+          let files = [
             `${workingDir}/policy-sbom.spdx.json`,
             `${workingDir}/policy-sbom.spdx.cert`,
             `${workingDir}/policy-sbom.spdx.sig`,
