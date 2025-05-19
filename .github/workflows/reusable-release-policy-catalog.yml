@@ -57,7 +57,8 @@ jobs:
             PAYLOAD=$(echo "$PAYLOAD" | jq --arg policy_working_dir "${{ inputs.policy-working-dir }}" '.client_payload.policy_working_dir = $policy_working_dir')
           fi
 
-          echo "payload=$PAYLOAD" >> payload.json
+          echo "$PAYLOAD"
+          echo "$PAYLOAD" >> payload.json
       - name: Release policy catalog
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
