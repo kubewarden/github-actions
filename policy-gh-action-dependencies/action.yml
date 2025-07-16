@@ -14,6 +14,6 @@ runs:
       run: sudo apt install -y bats
       shell: bash
     - name: Install SBOM generator tool
-      uses: kubewarden/github-actions/sbom-generator-installer@v4.5.2
-    - name: Install SBOM generator tool
+      uses: kubewarden/github-actions/syft-installer@v4.5.2
+    - name: Install binaryen tool
       uses: kubewarden/github-actions/binaryen-installer@v4.5.2

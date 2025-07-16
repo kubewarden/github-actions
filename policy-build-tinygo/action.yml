@@ -39,11 +39,12 @@ runs:
       if: ${{ inputs.generate-sbom == 'true' }}
       shell: bash
       run: |
-        spdx-sbom-generator -f json
-
         # SBOM files should have "sbom" in the name due the CLO monitor
         # https://clomonitor.io/docs/topics/checks/#software-bill-of-materials-sbom
-        mv bom-go-mod.json policy-sbom.spdx.json
+        syft scan --output spdx-json=policy-sbom.spdx.json \
+          --source-name $(yq '.annotations["io.kubewarden.policy.title"] + "-" + .annotations["io.kubewarden.policy.version"]' metadata.yml) \
+          --source-version ${{ github.sha }} \
+          -vv dir:.
     - name: Annotate Wasm module
       shell: bash
       run: |

@@ -7,7 +7,7 @@ inputs:
   VERSION:
     description: "syft release to be installed"
     required: false
-    default: "0.85.0"
+    default: "1.28.0"
   arch:
     description: "syft arch to be installed"
     required: false
