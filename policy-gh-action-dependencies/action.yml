@@ -9,11 +9,11 @@ runs:
     - name: Install cosign
       uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3.9.1
     - name: Install kwctl
-      uses: kubewarden/github-actions/kwctl-installer@v4.5.2
+      uses: kubewarden/github-actions/kwctl-installer@v4.5.3
     - name: Install bats
       run: sudo apt install -y bats
       shell: bash
     - name: Install SBOM generator tool
-      uses: kubewarden/github-actions/syft-installer@v4.5.2
+      uses: kubewarden/github-actions/syft-installer@v4.5.3
     - name: Install binaryen tool
-      uses: kubewarden/github-actions/binaryen-installer@v4.5.2
+      uses: kubewarden/github-actions/binaryen-installer@v4.5.3
