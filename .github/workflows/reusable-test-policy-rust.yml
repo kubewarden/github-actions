@@ -31,7 +31,7 @@ jobs:
           rustup override set stable
         shell: bash
       - name: Run Cargo check
-        run: cargo check
+        run: cargo check --workspace
         shell: bash
 
   test:
@@ -45,7 +45,7 @@ jobs:
           rustup override set stable
         shell: bash
       - name: Run Cargo test
-        run: cargo test
+        run: cargo test --workspace
         shell: bash
   e2e-tests:
     name: E2E testSuite
@@ -85,4 +85,4 @@ jobs:
           rustup toolchain install stable  --profile minimal --target wasm32-wasip1 --component clippy
           rustup override set stable
       - name: Run Cargo clippy
-        run: cargo clippy -- -D warnings
+        run: cargo clippy --workspace -- -D warnings
