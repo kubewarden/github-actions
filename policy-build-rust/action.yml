@@ -18,14 +18,14 @@ runs:
     - name: Prepare Rust environment
       shell: bash
       run: |
-        rustup toolchain install stable  --profile minimal --target wasm32-wasip2
+        rustup toolchain install stable  --profile minimal --target wasm32-wasip1
     - name: Build Wasm module
       shell: bash
-      run: cargo build --target=wasm32-wasip2 --release
+      run: cargo build --target=wasm32-wasip1 --release
     - name: Rename Wasm module
       shell: bash
       run: |
-        cp target/wasm32-wasip2/release/*.wasm policy.wasm
+        cp target/wasm32-wasip1/release/*.wasm policy.wasm
     - name: Annotate Wasm module
       shell: bash
       run: |
