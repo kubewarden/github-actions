@@ -19,6 +19,7 @@ runs:
       shell: bash
       run: |
         rustup toolchain install stable  --profile minimal --target wasm32-wasip1
+        rustup override set stable
     - name: Build Wasm module
       shell: bash
       run: cargo build --target=wasm32-wasip1 --release
