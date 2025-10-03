@@ -2,45 +2,28 @@
   "extends": [
     "config:recommended",
     "helpers:pinGitHubActionDigestsToSemver",
-    "schedule:nonOfficeHours"
+    "schedule:weekends"
   ],
   "labels": [
     "area/dependencies"
   ],
   "lockFileMaintenance": {
     "enabled": true,
-    "schedule": [
-      "before 4am on monday"
-    ],
     "automerge": true
-  },
-  "major": {
-    "automerge": false
   },
   "packageRules": [
     {
+      "_comment": "bundle dependencies updates together",
       "matchUpdateTypes": [
-        "patch"
+        "patch",
+        "minor",
+        "major"
       ],
-      "groupName": "all patch level dependencies",
-      "groupSlug": "all-patch",
+      "groupName": "all dependencies updates",
+      "groupSlug": "all-updates",
       "matchPackageNames": [
         "*"
       ],
-      "automerge": true,
-      "semanticCommits": "enabled",
-      "semanticCommitType": "build"
-    },
-    {
-      "matchUpdateTypes": [
-        "minor"
-      ],
-      "groupName": "all minor level dependencies",
-      "groupSlug": "all-minor",
-      "matchPackageNames": [
-        "*"
-      ],
-      "automerge": false,
       "semanticCommits": "enabled",
       "semanticCommitType": "build"
     }
