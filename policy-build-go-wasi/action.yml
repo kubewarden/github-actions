@@ -41,7 +41,12 @@ runs:
       if: ${{ inputs.generate-sbom == 'true' }}
       shell: bash
       run: |
-        cosign sign-blob --yes --output-certificate policy-sbom.spdx.cert \
+
+        # We need to disable the new bundle format enabled by default since 
+        # cosign v3.x.x because some verification tools (e.g. slsactl) are not
+        # able to properly verify the signatures using this new format
+        cosign sign-blob --yes --new-bundle-format=false --use-signing-config=false \
+          --output-certificate policy-sbom.spdx.cert \
           --output-signature policy-sbom.spdx.sig \
           policy-sbom.spdx.json
     - name: Upload policy SBOM files
