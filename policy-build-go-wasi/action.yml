@@ -37,18 +37,16 @@ runs:
       shell: bash
       run: |
         make annotated-policy.wasm
+
     - name: Sign BOM file
       if: ${{ inputs.generate-sbom == 'true' }}
       shell: bash
       run: |
-
-        # We need to disable the new bundle format enabled by default since 
-        # cosign v3.x.x because some verification tools (e.g. slsactl) are not
-        # able to properly verify the signatures using this new format
-        cosign sign-blob --yes --new-bundle-format=false --use-signing-config=false \
+        cosign sign-blob --yes \
           --output-certificate policy-sbom.spdx.cert \
           --output-signature policy-sbom.spdx.sig \
           policy-sbom.spdx.json
+
     - name: Upload policy SBOM files
       if: ${{ inputs.generate-sbom == 'true' }}
       uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0

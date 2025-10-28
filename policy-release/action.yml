@@ -46,10 +46,14 @@ runs:
         IMMUTABLE_REF=$(kwctl push -o json ${{ inputs.annotated-wasm }} ${{ inputs.oci-target }}:latest | jq -r .immutable_ref)
 
         echo Keyless signing of policy using cosign
+
         # We need to disable the new bundle format enabled by default since 
         # cosign v3.x.x because some verification tools (e.g. slsactl) are not
         # able to properly verify the signatures using this new format
         cosign sign --yes --new-bundle-format=false --use-signing-config=false ${IMMUTABLE_REF}
+
+        # Sign also with cosign v3 signature format
+        cosign sign --yes --new-bundle-format=true --use-signing-config=true ${IMMUTABLE_REF}
     - name: Publish Wasm policy artifact to OCI registry with the version tag and 'latest'
       shell: bash
       if: ${{ ! startsWith(github.ref, 'refs/heads/') }}
@@ -62,10 +66,14 @@ runs:
         IMMUTABLE_REF=$(kwctl push -o json ${{ inputs.annotated-wasm }} ${{ inputs.oci-target }}:${OCI_TAG} | jq -r .immutable_ref)
 
         echo Keyless signing of policy using cosign
+
         # We need to disable the new bundle format enabled by default since 
         # cosign v3.x.x because some verification tools (e.g. slsactl) are not
         # able to properly verify the signatures using this new format
         cosign sign --yes --new-bundle-format=false --use-signing-config=false ${IMMUTABLE_REF}
+
+        # Sign also with cosign v3 signature format
+        cosign sign --yes --new-bundle-format=true --use-signing-config=true ${IMMUTABLE_REF}
     - name: Create release
       if: ${{ ! startsWith(github.ref, 'refs/heads/')  && inputs.policy-working-dir != '.' }}
       # if we are on a monorepo, we create a GH release directly and don't reuse a draft release
