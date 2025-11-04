@@ -47,8 +47,8 @@ runs:
       shell: bash
       run: |
         cosign sign-blob --yes \
-          --output-certificate policy-sbom.spdx.cert \
-          --output-signature policy-sbom.spdx.sig \
+          --new-bundle-format=true --use-signing-config=true \
+          --bundle policy-sbom.spdx.jsonl.bundle.sigstore \
           policy-sbom.spdx.json
 
     - name: Upload policy SBOM files
@@ -58,5 +58,4 @@ runs:
         name: policy-sbom
         path: |
           policy-sbom.spdx.json
-          policy-sbom.spdx.cert
-          policy-sbom.spdx.sig
+          policy-sbom.spdx.jsonl.bundle.sigstore

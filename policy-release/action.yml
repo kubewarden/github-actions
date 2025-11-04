@@ -154,8 +154,7 @@ runs:
 
           let files = [
             `${workingDir}/policy-sbom.spdx.json`,
-            `${workingDir}/policy-sbom.spdx.cert`,
-            `${workingDir}/policy-sbom.spdx.sig`,
+            `${workingDir}/policy-sbom.spdx.jsonl.bundle.sigstore`,
           ]
           const {RELEASE_ID} = process.env
 
