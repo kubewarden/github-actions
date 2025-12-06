@@ -30,7 +30,7 @@ jobs:
     steps:
       - name: Install dependencies
         uses: kubewarden/github-actions/policy-gh-action-dependencies@v4.5.15
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           # until https://github.com/actions/checkout/pull/579 is released
           fetch-depth: 0
@@ -70,7 +70,7 @@ jobs:
           policy-working-dir: ${{ inputs.policy-working-dir }}
       - name: Install opa
         uses: kubewarden/github-actions/opa-installer@v4.5.15
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - name: Build policy
         working-directory: ${{ inputs.policy-working-dir }}
         shell: bash
