@@ -1,0 +1,103 @@
+name: attestation
+description: extract and sign provenance and SBOM files
+inputs:
+  component:
+    description: |
+      The component name (e.g., policy-server, kubewarden-controller, audit-scanner)
+    required: true
+  arch:
+    description: architecture being processed
+    required: true
+  GITHUB_TOKEN:
+    description: |
+      The GitHub token with permission to publish images to ghcr.
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Install cosign
+      uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad # v4.0.0
+    - name: Install the crane command
+      uses: kubewarden/github-actions/crane-installer@v4.5.15
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ inputs.GITHUB_TOKEN }}
+    - name: Download all digests
+      uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+      with:
+        path: ${{ runner.temp }}/digests
+        pattern: digest-${{ inputs.component }}-*
+        merge-multiple: true
+    - name: Retrieve digest
+      working-directory: ${{ runner.temp }}/digests
+      shell: bash
+      run: |
+        set -e
+        DIGEST=$(cat ${{ inputs.component }}-${{ inputs.arch }}.txt)
+        echo "DIGEST=${DIGEST}" >> "$GITHUB_ENV"
+    - name: Find attestation digest
+      shell: bash
+      run: |
+        set -e
+        DIGEST=$(crane manifest ghcr.io/${{ github.repository_owner }}/${{ inputs.component }}@${{ env.DIGEST }} \
+        | jq -r '.manifests[]
+          | select(.annotations["vnd.docker.reference.type"] == "attestation-manifest")
+          | .digest')
+        echo "ATTESTATION_MANIFEST_DIGEST=${DIGEST}" >> "$GITHUB_ENV"
+    - name: Find provenance manifest digest
+      shell: bash
+      run: |
+        set -e
+        DIGEST=$(crane manifest ghcr.io/${{ github.repository_owner }}/${{ inputs.component }}@${{ env.ATTESTATION_MANIFEST_DIGEST }} |
+                    jq -r '.layers[]
+                      | select(.annotations["in-toto.io/predicate-type"] == "https://slsa.dev/provenance/v0.2")
+                      | .digest')
+        echo "PROVENANCE_DIGEST=${DIGEST}" >> "$GITHUB_ENV"
+    - name: Find SBOM manifest layer digest
+      shell: bash
+      run: |
+        set -e
+        DIGEST=$(crane manifest ghcr.io/${{ github.repository_owner }}/${{ inputs.component }}@${{ env.ATTESTATION_MANIFEST_DIGEST}} |  \
+          jq '.layers | map(select(.annotations["in-toto.io/predicate-type"] == "https://spdx.dev/Document")) | map(.digest) | join(" ")')
+        echo "SBOM_DIGEST=${DIGEST}" >> "$GITHUB_ENV"
+
+    # We need to upload provenance and SBOM files, plus their signatures under the GitHub Release page.
+    # Moreover, the files have to be named in a certain way.
+    # This is required by [ossf](https://github.com/ossf/scorecard/blob/main/docs/checks.md#signed-releases)
+    - name: Download provenance and SBOM files
+      shell: bash
+      run: |
+        set -e
+        crane blob ghcr.io/${{ github.repository_owner }}/${{ inputs.component }}@${{ env.PROVENANCE_DIGEST}} \
+          > ${{ inputs.component }}-attestation-${{ inputs.arch }}-provenance.intoto.jsonl
+        crane blob ghcr.io/${{ github.repository_owner }}/${{ inputs.component }}@${{ env.SBOM_DIGEST}} \
+          > ${{ inputs.component }}-attestation-${{ inputs.arch }}-sbom.json
+    - name: Sign provenance and SBOM files
+      shell: bash
+      run: |
+        set -e
+        cosign sign-blob --yes \
+          --bundle ${{ inputs.component }}-attestation-${{ inputs.arch }}-provenance.intoto.jsonl.bundle.sigstore \
+          ${{ inputs.component }}-attestation-${{ inputs.arch }}-provenance.intoto.jsonl
+        cosign verify-blob \
+          --bundle ${{ inputs.component }}-attestation-${{ inputs.arch }}-provenance.intoto.jsonl.bundle.sigstore \
+          --certificate-oidc-issuer=https://token.actions.githubusercontent.com \
+          --certificate-identity="${{ github.server_url }}/${{ github.workflow_ref }}" \
+          ${{ inputs.component }}-attestation-${{ inputs.arch }}-provenance.intoto.jsonl
+
+        cosign sign-blob --yes \
+          --bundle ${{ inputs.component }}-attestation-${{ inputs.arch }}-sbom.json.bundle.sigstore \
+          ${{ inputs.component }}-attestation-${{ inputs.arch }}-sbom.json
+        cosign verify-blob \
+          --bundle ${{ inputs.component }}-attestation-${{ inputs.arch }}-sbom.json.bundle.sigstore \
+          --certificate-oidc-issuer=https://token.actions.githubusercontent.com \
+          --certificate-identity="${{ github.server_url }}/${{ github.workflow_ref }}" \
+          ${{ inputs.component }}-attestation-${{ inputs.arch }}-sbom.json
+    - name: Upload SBOMs as artifacts
+      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      with:
+        name: attestation-${{ inputs.component }}-${{ inputs.arch }}
+        path: ${{ inputs.component }}-attestation-${{ inputs.arch }}*
