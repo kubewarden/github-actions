@@ -1,0 +1,102 @@
+name: merge-multiarch-images
+description: merge multi-arch images based on images digests provided
+inputs:
+  digest_artifact_prefix:
+    description: the prefix of the artifact filename
+    default: digest-
+  component:
+    description: |
+      The component name (e.g., policy-server, kubewarden-controller, audit-scanner)
+    required: true
+  tag:
+    description: |
+      The tag component in a fully qualified image.
+    required: true
+  arch:
+    description: The list of image architecture for this action to merge (comma-separated)
+    default: amd64,arm64
+  GITHUB_TOKEN:
+    description: |
+      The GitHub token with permission to publish images to ghcr.
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Download all digests
+      uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+      with:
+        path: ${{ runner.temp }}/digests
+        pattern: ${{ inputs.digest_artifact_prefix}}${{ inputs.component }}-*
+        merge-multiple: true
+    - name: Install cosign
+      uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad # v4.0.0
+    - name: Login to GHCR
+      uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ inputs.GITHUB_TOKEN }}
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
+    - name: Create and push multi-arch manifest for ${{ inputs.component }}
+      id: create-manifest
+      working-directory: ${{ runner.temp }}/digests
+      shell: bash
+      run: |
+        set -e
+        TARGET=""
+
+        ARCHES=$(echo ${{ inputs.arch }} | tr ',' ' ')
+
+        for ARCH in $ARCHES
+        do
+          TARGET+=" ghcr.io/${{ github.repository_owner }}/${{ inputs.component }}@$(cat ${{ inputs.component }}-$ARCH.txt)"
+        done
+
+        # Create the manifest locally
+        docker buildx imagetools create \
+          -t ghcr.io/${{ github.repository_owner }}/${{ inputs.component }}:${{ inputs.tag }} \
+          $TARGET \
+          --dry-run > expected-multi-arch-manifest.json
+
+        # Create the manifest and push it
+        docker buildx imagetools create \
+          -t ghcr.io/${{ github.repository_owner }}/${{ inputs.component }}:${{ inputs.tag }} \
+          $TARGET
+
+        # The previous command is NOT printing the digest of the multi-arch manifest, we have to obtain it by
+        # fetching it from the OCI registry and **verify** its contents before signing it
+
+        # Fetch the multi arch manifest
+        docker buildx imagetools inspect ghcr.io/${{ github.repository_owner }}/${{ inputs.component }}:${{ inputs.tag }} \
+          --raw > multi-arch-manifest.json
+        multi_arch_manifest_digest="sha256:$(sha256sum multi-arch-manifest.json | awk '{print $1}')"
+
+        # Compare the contents of the manifest we previously computed and the actual one.
+        # Use jq to sort the contents and build a compact output (removing useless whitespaces),
+        # this is done to ensure the JSON documents have the same structure.
+        expected_digest="sha256:$(jq -S -c . expected-multi-arch-manifest.json | sha256sum | awk '{print $1}')"
+        actual_digest="sha256:$(jq -S -c . multi-arch-manifest.json | sha256sum | awk '{print $1}')"
+
+        if [ "$expected_digest" != "$actual_digest" ]; then
+          echo "Error: digests do not match!"
+          exit 1
+        fi
+
+        # Sign the multi-arch image manifest using cosign v2 format
+        cosign sign --yes --new-bundle-format=false --use-signing-config=false \
+          ghcr.io/${{ github.repository_owner }}/${{ inputs.component }}@${multi_arch_manifest_digest}
+
+        # Sign the multi-arch image manifest using cosign v3 format
+        cosign sign --yes --new-bundle-format=true --use-signing-config=true \
+          ghcr.io/${{ github.repository_owner }}/${{ inputs.component }}@${multi_arch_manifest_digest}
+
+        echo "MULTI_ARCH_MANIFEST_DIGEST=$multi_arch_manifest_digest" >> $GITHUB_ENV
+
+    - name: Verify multi-arch manifest signature
+      shell: bash
+      run: |
+        cosign verify \
+          --certificate-oidc-issuer=https://token.actions.githubusercontent.com \
+          --certificate-identity="${{ github.server_url }}/${{ github.workflow_ref }}" \
+          ghcr.io/${{ github.repository_owner }}/${{ inputs.component }}@${{ env.MULTI_ARCH_MANIFEST_DIGEST}}
