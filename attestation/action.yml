@@ -18,7 +18,7 @@ runs:
     - name: Install cosign
       uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad # v4.0.0
     - name: Install the crane command
-      uses: kubewarden/github-actions/crane-installer@v4.5.16
+      uses: kubewarden/github-actions/crane-installer@v4.6.0
     - name: Login to GitHub Container Registry
       uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
       with:
