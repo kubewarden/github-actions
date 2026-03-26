@@ -26,7 +26,7 @@ runs:
         [ "${{ inputs.KWCTL_VERSION }}" == "latest" ] && RELEASE_URL="latest/download"
 
         mkdir -p $INSTALL_DIR
-        curl -sL https://github.com/kubewarden/kwctl/releases/$RELEASE_URL/$ASSET.zip -o $INSTALL_DIR/$ASSET.zip
+        curl -sL https://github.com/kubewarden/kubewarden-controller/releases/$RELEASE_URL/$ASSET.zip -o $INSTALL_DIR/$ASSET.zip
         unzip -o $INSTALL_DIR/$ASSET.zip -d $INSTALL_DIR
         rm $INSTALL_DIR/$ASSET.zip
 
