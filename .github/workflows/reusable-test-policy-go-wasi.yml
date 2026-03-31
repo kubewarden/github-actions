@@ -23,11 +23,11 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Install dependencies
-        uses: kubewarden/github-actions/policy-gh-action-dependencies@72a8568d423da7645b0fb9cf92396db47bcfcaab
+        uses: kubewarden/github-actions/policy-gh-action-dependencies@7bc76e326b9c29582dd89eaf1b9efad1da3d3872
       - name: Build and annotate policy
         with:
           generate-sbom: false
-        uses: kubewarden/github-actions/policy-build-go-wasi@72a8568d423da7645b0fb9cf92396db47bcfcaab
+        uses: kubewarden/github-actions/policy-build-go-wasi@7bc76e326b9c29582dd89eaf1b9efad1da3d3872
       - name: Run e2e tests
         run: make e2e-tests
 
