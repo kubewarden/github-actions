@@ -94,7 +94,7 @@ jobs:
         if: >
           hashFiles('**/Cargo.toml') != '' &&
           ! steps.restore-cache.outputs.cache-hit
-        run: cargo install cargo-edit
+        run: cargo install cargo-edit --version 0.13.9 --locked
 
       - name: Create values.yaml for Updatecli
         run: |

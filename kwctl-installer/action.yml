@@ -3,11 +3,6 @@ description: "Install kwctl and includes it inside of PATH"
 branding:
   icon: "package"
   color: "blue"
-inputs:
-  KWCTL_VERSION:
-    description: "kwctl release to be installed"
-    required: false
-    default: v1.33.1
 runs:
   using: "composite"
   steps:
@@ -16,17 +11,22 @@ runs:
         #!/bin/bash
         set -e
 
+        KWCTL_VERSION="v1.33.1"
+
         # Build name of gihub release asset
         OS=$(echo "${{ runner.os }}" | tr '[:upper:]' '[:lower:]' | sed 's/macos/darwin/')
         ARCH=$(echo "${{ runner.arch }}" | sed -E 's/X64/x86_64/; s/ARM64/aarch64/')
         ASSET="kwctl-${OS}-${ARCH}"
 
         INSTALL_DIR=$HOME/.kwctl
-        RELEASE_URL="download/${{ inputs.KWCTL_VERSION }}"
-        [ "${{ inputs.KWCTL_VERSION }}" == "latest" ] && RELEASE_URL="latest/download"
 
         mkdir -p $INSTALL_DIR
-        curl -sL https://github.com/kubewarden/kubewarden-controller/releases/$RELEASE_URL/$ASSET.zip -o $INSTALL_DIR/$ASSET.zip
+        curl -sL https://github.com/kubewarden/kubewarden-controller/releases/download/${KWCTL_VERSION}/${ASSET}.zip -o $INSTALL_DIR/$ASSET.zip
+        curl -sL https://github.com/kubewarden/kubewarden-controller/releases/download/${KWCTL_VERSION}/${ASSET}.zip.bundle.sigstore \
+          -o $INSTALL_DIR/$ASSET.zip.bundle.sigstore
+        gh attestation verify $INSTALL_DIR/$ASSET.zip \
+          --bundle $INSTALL_DIR/$ASSET.zip.bundle.sigstore \
+          --repo kubewarden/kubewarden-controller
         unzip -o $INSTALL_DIR/$ASSET.zip -d $INSTALL_DIR
         rm $INSTALL_DIR/$ASSET.zip
 

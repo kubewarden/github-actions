@@ -4,10 +4,6 @@ branding:
   icon: "package"
   color: "blue"
 inputs:
-  tinygo-version:
-    required: true
-    description: "Version of tinygo to use"
-    default: 0.39.0
   generate-sbom:
     required: false
     description: "Generate and sign SBOM files"
@@ -29,8 +25,12 @@ runs:
     - name: Install tinygo
       shell: bash
       run: |
-        wget https://github.com/tinygo-org/tinygo/releases/download/v${{ inputs.tinygo-version }}/tinygo_${{ inputs.tinygo-version }}_amd64.deb
-        sudo dpkg -i tinygo_${{ inputs.tinygo-version }}_amd64.deb
+        TINYGO_VERSION="0.39.0"
+        TINYGO_CHECKSUM="775f15974e35059c8f3a141266bd9d293b5d556a3e44d5e6356c5602e9f386ab"
+        TINYGO_DEB="tinygo_${TINYGO_VERSION}_amd64.deb"
+        wget https://github.com/tinygo-org/tinygo/releases/download/v${TINYGO_VERSION}/${TINYGO_DEB}
+        echo "${TINYGO_CHECKSUM}  ${TINYGO_DEB}" | sha256sum --check
+        sudo dpkg -i ${TINYGO_DEB}
     - name: Build Wasm module
       shell: bash
       run: |

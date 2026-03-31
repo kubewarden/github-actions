@@ -1,5 +1,5 @@
 name: 'tarpaulin-installer'
-description: 'Installs latest tarpaulin and includes it inside of PATH'
+description: 'Installs tarpaulin and includes it inside of PATH'
 branding:
   icon: 'package'
   color: 'blue'
@@ -11,12 +11,16 @@ runs:
         #!/bin/bash
         set -e
 
+        VERSION="0.35.2"
+        CHECKSUM="7364496b9fee593263a23738068003e847c2a468d36fbe99af99c279f14f70dd"
+        ASSET="cargo-tarpaulin-x86_64-unknown-linux-musl.tar.gz"
         INSTALL_DIR=$HOME/.tarpaulin
-        LATEST_RELEASE=$(curl -s https://api.github.com/repos/xd009642/tarpaulin/releases/latest | jq -r '.tag_name')
 
         mkdir -p $INSTALL_DIR
 
-        curl -sL https://github.com/xd009642/tarpaulin/releases/download/$LATEST_RELEASE/cargo-tarpaulin-x86_64-unknown-linux-musl.tar.gz -o $INSTALL_DIR/tarpaulin.tar.gz
+        curl -sL https://github.com/xd009642/tarpaulin/releases/download/${VERSION}/${ASSET} \
+          -o $INSTALL_DIR/tarpaulin.tar.gz
+        echo "${CHECKSUM}  $INSTALL_DIR/tarpaulin.tar.gz" | sha256sum --check
         tar xvf $INSTALL_DIR/tarpaulin.tar.gz -C $INSTALL_DIR
         rm $INSTALL_DIR/tarpaulin.tar.gz
 
