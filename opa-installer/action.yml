@@ -8,7 +8,7 @@ inputs:
     description: "opa release to be installed"
     required: false
     default: "v0.65.0"
-  CHECKSUM:
+  checksum:
     description: "SHA256 checksum of the opa release binary"
     required: false
     default: "cd6b0b2d762571a746f0261890b155e6dd71cca90dad6b42b6fcf6dd7f619f08"
@@ -21,7 +21,7 @@ runs:
         set -e
 
         VERSION="${{ inputs.opa-version }}"
-        CHECKSUM="${{ inputs.CHECKSUM }}"
+        CHECKSUM="${{ inputs.checksum }}"
         INSTALL_DIR=$HOME/.opa
 
         mkdir -p $INSTALL_DIR

@@ -73,7 +73,7 @@ jobs:
       - name: Release
         uses: kubewarden/github-actions/policy-release@7bc76e326b9c29582dd89eaf1b9efad1da3d3872
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           oci-target: ${{ inputs.oci-target }}
           policy-version: ${{ steps.calculate-version.outputs.version }}
           expect-sbom: "false"

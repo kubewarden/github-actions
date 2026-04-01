@@ -4,7 +4,7 @@ branding:
   icon: "package"
   color: "blue"
 inputs:
-  KWCTL_VERSION:
+  kwctl-version:
     description: "kwctl release to be installed"
     required: false
     default: "v1.33.1"
@@ -16,7 +16,7 @@ runs:
         #!/bin/bash
         set -e
 
-        KWCTL_VERSION="${{ inputs.KWCTL_VERSION }}"
+        KWCTL_VERSION="${{ inputs.kwctl-version }}"
 
         # Build name of gihub release asset
         OS=$(echo "${{ runner.os }}" | tr '[:upper:]' '[:lower:]' | sed 's/macos/darwin/')

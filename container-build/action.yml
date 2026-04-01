@@ -1,7 +1,7 @@
 name: container-build
 description: build/sign an image and publish its digest in artifact
 inputs:
-  digest_artifact_prefix:
+  digest-artifact-prefix:
     description: the prefix of the artifact filename
     default: digest-
   component:
@@ -16,7 +16,7 @@ inputs:
     description: |
       Target platform for Docker build (e.g., linux/amd64, linux/arm64)
     required: true
-  GITHUB_TOKEN:
+  github-token:
     description: |
       The GitHub token with permission to publish images to ghcr.
     required: true
@@ -34,7 +34,7 @@ runs:
       with:
         registry: ghcr.io
         username: ${{ github.repository_owner }}
-        password: ${{ inputs.GITHUB_TOKEN }}
+        password: ${{ inputs.github-token }}
     - name: Docker meta
       id: meta
       uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
@@ -87,6 +87,6 @@ runs:
     - name: Upload digest
       uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
       with:
-        name: ${{ inputs.digest_artifact_prefix }}${{ inputs.component }}-${{ inputs.arch }}
+        name: ${{ inputs.digest-artifact-prefix }}${{ inputs.component }}-${{ inputs.arch }}
         path: ${{ runner.temp }}/digests/*.txt
         retention-days: 1

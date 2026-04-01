@@ -4,11 +4,11 @@ branding:
   icon: 'package'
   color: 'blue'
 inputs:
-  VERSION:
+  version:
     description: 'crane release to be installed'
     required: false
     default: "0.15.2"
-  CHECKSUM:
+  checksum:
     description: "SHA256 checksum of the crane release tarball"
     required: false
     default: "bd5f72ae96373ac640679a6108280b6d76698773ca21f293ae30cc17413e2ad1"
@@ -20,8 +20,8 @@ runs:
         #!/bin/bash
         set -e
 
-        VERSION="${{ inputs.VERSION }}"
-        CHECKSUM="${{ inputs.CHECKSUM }}"
+        VERSION="${{ inputs.version }}"
+        CHECKSUM="${{ inputs.checksum }}"
         INSTALL_DIR=$HOME/.crane
 
         mkdir -p $INSTALL_DIR

@@ -4,11 +4,11 @@ branding:
   icon: "package"
   color: "blue"
 inputs:
-  VERSION:
+  version:
     description: "binaryen release to be installed"
     required: false
     default: "116"
-  CHECKSUM:
+  checksum:
     description: "SHA256 checksum of the binaryen release tarball"
     required: false
     default: "c55b74f3109cdae97490faf089b0286d3bba926bb6ea5ed00c8c784fc53718fd"
@@ -20,8 +20,8 @@ runs:
         #!/bin/bash
         set -e
 
-        VERSION="${{ inputs.VERSION }}"
-        CHECKSUM="${{ inputs.CHECKSUM }}"
+        VERSION="${{ inputs.version }}"
+        CHECKSUM="${{ inputs.checksum }}"
         INSTALL_DIR=$HOME/.binaryen
 
         mkdir -p $INSTALL_DIR

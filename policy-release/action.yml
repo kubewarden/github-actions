@@ -11,7 +11,7 @@ inputs:
   oci-target:
     description: "OCI target repository for the resulting policy artifact"
     required: true
-  GITHUB_TOKEN:
+  github-token:
     description: "GitHub token to login into ghcr.io"
     required: true
   policy-working-dir:
@@ -36,7 +36,7 @@ runs:
       with:
         registry: ghcr.io
         username: ${{ github.repository_owner }}
-        password: ${{ inputs.GITHUB_TOKEN }}
+        password: ${{ inputs.github-token }}
     - name: Publish Wasm policy artifact to OCI registry with the 'latest' tag
       shell: bash
       if: ${{ startsWith(github.ref, 'refs/heads/') }}
@@ -79,7 +79,7 @@ runs:
       # if we are on a monorepo, we create a GH release directly and don't reuse a draft release
       uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
       env:
-        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
       with:
         tag_name: ${{ github.ref }}
         name: ${{ github.ref_name }}
