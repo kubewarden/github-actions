@@ -4,10 +4,22 @@ branding:
   icon: 'package'
   color: 'blue'
 inputs:
+  version:
+    description: 'Kubernetes bom command version to be installed'
+    required: false
+    default: "v0.3.0"
   arch:
     description: "Architecture to install (linux-amd64, linux-arm64)"
     required: false
     default: "linux-amd64"
+  CHECKSUM_LINUX_AMD64:
+    description: "SHA256 checksum of the linux-amd64 release tarball"
+    required: false
+    default: "314b1713c3350cd063f2330fba25766860011c8e193fbae30da2d8b58cc3ac13"
+  CHECKSUM_LINUX_ARM64:
+    description: "SHA256 checksum of the linux-arm64 release tarball"
+    required: false
+    default: "451698ad7124aedc14d02f1cc48bbc41d687f42509e6fa0272ac37bf28abb74c"
 runs:
   using: "composite"
   steps:
@@ -16,13 +28,13 @@ runs:
         #!/bin/bash
         set -e
 
-        VERSION="v0.3.0"
+        VERSION="${{ inputs.version }}"
         ARCH="${{ inputs.arch }}"
         INSTALL_DIR=$HOME/.bom-generator
 
         case "${ARCH}" in
-          linux-amd64) CHECKSUM="314b1713c3350cd063f2330fba25766860011c8e193fbae30da2d8b58cc3ac13" ;;
-          linux-arm64) CHECKSUM="451698ad7124aedc14d02f1cc48bbc41d687f42509e6fa0272ac37bf28abb74c" ;;
+          linux-amd64) CHECKSUM="${{ inputs.CHECKSUM_LINUX_AMD64 }}" ;;
+          linux-arm64) CHECKSUM="${{ inputs.CHECKSUM_LINUX_ARM64 }}" ;;
           *) echo "Unsupported arch: ${ARCH}. Supported values: linux-amd64, linux-arm64"; exit 1 ;;
         esac
 

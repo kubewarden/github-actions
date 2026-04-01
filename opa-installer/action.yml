@@ -3,6 +3,15 @@ description: "Install opa and add it to PATH"
 branding:
   icon: "package"
   color: "blue"
+inputs:
+  opa-version:
+    description: "opa release to be installed"
+    required: false
+    default: "v0.65.0"
+  CHECKSUM:
+    description: "SHA256 checksum of the opa release binary"
+    required: false
+    default: "cd6b0b2d762571a746f0261890b155e6dd71cca90dad6b42b6fcf6dd7f619f08"
 runs:
   using: "composite"
   steps:
@@ -11,8 +20,8 @@ runs:
         #!/bin/bash
         set -e
 
-        VERSION="v0.65.0"
-        CHECKSUM="cd6b0b2d762571a746f0261890b155e6dd71cca90dad6b42b6fcf6dd7f619f08"
+        VERSION="${{ inputs.opa-version }}"
+        CHECKSUM="${{ inputs.CHECKSUM }}"
         INSTALL_DIR=$HOME/.opa
 
         mkdir -p $INSTALL_DIR

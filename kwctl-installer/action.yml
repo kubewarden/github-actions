@@ -3,6 +3,11 @@ description: "Install kwctl and includes it inside of PATH"
 branding:
   icon: "package"
   color: "blue"
+inputs:
+  KWCTL_VERSION:
+    description: "kwctl release to be installed"
+    required: false
+    default: "v1.33.1"
 runs:
   using: "composite"
   steps:
@@ -11,7 +16,7 @@ runs:
         #!/bin/bash
         set -e
 
-        KWCTL_VERSION="v1.33.1"
+        KWCTL_VERSION="${{ inputs.KWCTL_VERSION }}"
 
         # Build name of gihub release asset
         OS=$(echo "${{ runner.os }}" | tr '[:upper:]' '[:lower:]' | sed 's/macos/darwin/')

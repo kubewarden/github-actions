@@ -3,6 +3,15 @@ description: 'Install crane and includes it inside of PATH'
 branding:
   icon: 'package'
   color: 'blue'
+inputs:
+  VERSION:
+    description: 'crane release to be installed'
+    required: false
+    default: "0.15.2"
+  CHECKSUM:
+    description: "SHA256 checksum of the crane release tarball"
+    required: false
+    default: "bd5f72ae96373ac640679a6108280b6d76698773ca21f293ae30cc17413e2ad1"
 runs:
   using: "composite"
   steps:
@@ -11,8 +20,8 @@ runs:
         #!/bin/bash
         set -e
 
-        VERSION="0.15.2"
-        CHECKSUM="bd5f72ae96373ac640679a6108280b6d76698773ca21f293ae30cc17413e2ad1"
+        VERSION="${{ inputs.VERSION }}"
+        CHECKSUM="${{ inputs.CHECKSUM }}"
         INSTALL_DIR=$HOME/.crane
 
         mkdir -p $INSTALL_DIR

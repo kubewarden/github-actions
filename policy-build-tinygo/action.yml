@@ -4,6 +4,14 @@ branding:
   icon: "package"
   color: "blue"
 inputs:
+  tinygo-version:
+    required: false
+    description: "Version of tinygo to use"
+    default: "0.39.0"
+  tinygo-checksum:
+    required: false
+    description: "SHA256 checksum of the tinygo release .deb package"
+    default: "775f15974e35059c8f3a141266bd9d293b5d556a3e44d5e6356c5602e9f386ab"
   generate-sbom:
     required: false
     description: "Generate and sign SBOM files"
@@ -25,8 +33,8 @@ runs:
     - name: Install tinygo
       shell: bash
       run: |
-        TINYGO_VERSION="0.39.0"
-        TINYGO_CHECKSUM="775f15974e35059c8f3a141266bd9d293b5d556a3e44d5e6356c5602e9f386ab"
+        TINYGO_VERSION="${{ inputs.tinygo-version }}"
+        TINYGO_CHECKSUM="${{ inputs.tinygo-checksum }}"
         TINYGO_DEB="tinygo_${TINYGO_VERSION}_amd64.deb"
         wget https://github.com/tinygo-org/tinygo/releases/download/v${TINYGO_VERSION}/${TINYGO_DEB}
         echo "${TINYGO_CHECKSUM}  ${TINYGO_DEB}" | sha256sum --check

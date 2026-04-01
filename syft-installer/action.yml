@@ -4,10 +4,26 @@ branding:
   icon: "package"
   color: "blue"
 inputs:
+  VERSION:
+    description: "syft release to be installed"
+    required: false
+    default: "1.28.0"
   arch:
     description: "syft arch to be installed (linux_amd64, windows_amd64, darwin_amd64)"
     required: false
     default: "linux_amd64"
+  CHECKSUM_LINUX_AMD64:
+    description: "SHA256 checksum of the linux_amd64 release tarball"
+    required: false
+    default: "3edee7fe1ceb1f78360e547f57048930d57f00c7ec3d0b8bdfb902805f048468"
+  CHECKSUM_DARWIN_AMD64:
+    description: "SHA256 checksum of the darwin_amd64 release tarball"
+    required: false
+    default: "15067673a0ea8aeba31e2a53deb1633eac5c0024ab73bdff91cffb157735d90a"
+  CHECKSUM_WINDOWS_AMD64:
+    description: "SHA256 checksum of the windows_amd64 release zip"
+    required: false
+    default: "a1637fdc074e9c80c6bf900df26a883516bf32e90499e3bd9aa314493d40a0a8"
 runs:
   using: "composite"
   steps:
@@ -16,14 +32,14 @@ runs:
         #!/bin/bash
         set -e
 
-        VERSION="1.28.0"
+        VERSION="${{ inputs.VERSION }}"
         ARCH="${{ inputs.arch }}"
         INSTALL_DIR=$HOME/.syft
 
         case "${ARCH}" in
-          linux_amd64)   CHECKSUM="3edee7fe1ceb1f78360e547f57048930d57f00c7ec3d0b8bdfb902805f048468" ;;
-          darwin_amd64)  CHECKSUM="15067673a0ea8aeba31e2a53deb1633eac5c0024ab73bdff91cffb157735d90a" ;;
-          windows_amd64) CHECKSUM="a1637fdc074e9c80c6bf900df26a883516bf32e90499e3bd9aa314493d40a0a8" ;;
+          linux_amd64)   CHECKSUM="${{ inputs.CHECKSUM_LINUX_AMD64 }}" ;;
+          darwin_amd64)  CHECKSUM="${{ inputs.CHECKSUM_DARWIN_AMD64 }}" ;;
+          windows_amd64) CHECKSUM="${{ inputs.CHECKSUM_WINDOWS_AMD64 }}" ;;
           *) echo "Unsupported arch: ${ARCH}. Supported values: linux_amd64, windows_amd64, darwin_amd64"; exit 1 ;;
         esac
 
