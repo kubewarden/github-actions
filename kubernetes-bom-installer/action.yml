@@ -7,11 +7,19 @@ inputs:
   version:
     description: 'Kubernetes bom command version to be installed'
     required: false
-    default: v0.3.0
+    default: "v0.3.0"
   arch:
-    description: 'Kubernetes bom command arch to be installed'
+    description: "Architecture to install (linux-amd64, linux-arm64)"
     required: false
     default: "linux-amd64"
+  checksum-linux-amd64:
+    description: "SHA256 checksum of the linux-amd64 release tarball"
+    required: false
+    default: "314b1713c3350cd063f2330fba25766860011c8e193fbae30da2d8b58cc3ac13"
+  checksum-linux-arm64:
+    description: "SHA256 checksum of the linux-arm64 release tarball"
+    required: false
+    default: "451698ad7124aedc14d02f1cc48bbc41d687f42509e6fa0272ac37bf28abb74c"
 runs:
   using: "composite"
   steps:
@@ -20,10 +28,20 @@ runs:
         #!/bin/bash
         set -e
 
+        VERSION="${{ inputs.version }}"
+        ARCH="${{ inputs.arch }}"
         INSTALL_DIR=$HOME/.bom-generator
+
+        case "${ARCH}" in
+          linux-amd64) CHECKSUM="${{ inputs.checksum-linux-amd64 }}" ;;
+          linux-arm64) CHECKSUM="${{ inputs.checksum-linux-arm64 }}" ;;
+          *) echo "Unsupported arch: ${ARCH}. Supported values: linux-amd64, linux-arm64"; exit 1 ;;
+        esac
+
         mkdir -p $INSTALL_DIR
 
-        curl -L -O https://github.com/kubernetes-sigs/bom/releases/download/${{ inputs.version }}/bom-${{ inputs.arch }}.tar.gz
-        tar -xf bom-${{ inputs.arch }}.tar.gz --directory $INSTALL_DIR
+        curl -L -O https://github.com/kubernetes-sigs/bom/releases/download/${VERSION}/bom-${ARCH}.tar.gz
+        echo "${CHECKSUM}  bom-${ARCH}.tar.gz" | sha256sum --check
+        tar -xf bom-${ARCH}.tar.gz --directory $INSTALL_DIR
 
         echo $INSTALL_DIR >> $GITHUB_PATH

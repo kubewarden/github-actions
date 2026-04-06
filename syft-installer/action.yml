@@ -4,45 +4,57 @@ branding:
   icon: "package"
   color: "blue"
 inputs:
-  VERSION:
+  version:
     description: "syft release to be installed"
     required: false
     default: "1.28.0"
   arch:
-    description: "syft arch to be installed"
+    description: "syft arch to be installed (linux_amd64, windows_amd64, darwin_amd64)"
     required: false
-    default: "linux_amd64" # windows_amd64, darwin_amd64
+    default: "linux_amd64"
+  checksum-linux-amd64:
+    description: "SHA256 checksum of the linux_amd64 release tarball"
+    required: false
+    default: "3edee7fe1ceb1f78360e547f57048930d57f00c7ec3d0b8bdfb902805f048468"
+  checksum-darwin-amd64:
+    description: "SHA256 checksum of the darwin_amd64 release tarball"
+    required: false
+    default: "15067673a0ea8aeba31e2a53deb1633eac5c0024ab73bdff91cffb157735d90a"
+  checksum-windows-amd64:
+    description: "SHA256 checksum of the windows_amd64 release zip"
+    required: false
+    default: "a1637fdc074e9c80c6bf900df26a883516bf32e90499e3bd9aa314493d40a0a8"
 runs:
   using: "composite"
   steps:
     - shell: bash
-      if: ${{ inputs.arch != 'windows_amd64' }}
       run: |
         #!/bin/bash
         set -e
 
+        VERSION="${{ inputs.version }}"
+        ARCH="${{ inputs.arch }}"
         INSTALL_DIR=$HOME/.syft
+
+        case "${ARCH}" in
+          linux_amd64)   CHECKSUM="${{ inputs.checksum-linux-amd64 }}" ;;
+          darwin_amd64)  CHECKSUM="${{ inputs.checksum-darwin-amd64 }}" ;;
+          windows_amd64) CHECKSUM="${{ inputs.checksum-windows-amd64 }}" ;;
+          *) echo "Unsupported arch: ${ARCH}. Supported values: linux_amd64, windows_amd64, darwin_amd64"; exit 1 ;;
+        esac
 
         mkdir -p $INSTALL_DIR
 
-        curl -sL https://github.com/anchore/syft/releases/download/v${{ inputs.VERSION }}/syft_${{ inputs.VERSION }}_${{ inputs.arch }}.tar.gz -o $INSTALL_DIR/syft.tar.gz
-        tar xvf $INSTALL_DIR/syft.tar.gz -C $INSTALL_DIR
-        rm $INSTALL_DIR/syft.tar.gz
-
-        echo $INSTALL_DIR >> $GITHUB_PATH
-
-    - shell: bash
-      if: ${{ inputs.arch == 'windows_amd64' }}
-      run: |
-        #!/bin/bash
-        set -e
-
-        INSTALL_DIR=$HOME/.syft
-
-        mkdir -p $INSTALL_DIR
-
-        curl -sL https://github.com/anchore/syft/releases/download/v${{ inputs.VERSION }}/syft_${{ inputs.VERSION }}_windows_amd64.zip -o $INSTALL_DIR/syft.zip
-        unzip -n $INSTALL_DIR/syft.zip -d $INSTALL_DIR
-        rm $INSTALL_DIR/syft.zip
+        if [ "${ARCH}" = "windows_amd64" ]; then
+          curl -sL https://github.com/anchore/syft/releases/download/v${VERSION}/syft_${VERSION}_${ARCH}.zip -o $INSTALL_DIR/syft.zip
+          echo "${CHECKSUM}  $INSTALL_DIR/syft.zip" | sha256sum --check
+          unzip -n $INSTALL_DIR/syft.zip -d $INSTALL_DIR
+          rm $INSTALL_DIR/syft.zip
+        else
+          curl -sL https://github.com/anchore/syft/releases/download/v${VERSION}/syft_${VERSION}_${ARCH}.tar.gz -o $INSTALL_DIR/syft.tar.gz
+          echo "${CHECKSUM}  $INSTALL_DIR/syft.tar.gz" | sha256sum --check
+          tar xvf $INSTALL_DIR/syft.tar.gz -C $INSTALL_DIR
+          rm $INSTALL_DIR/syft.tar.gz
+        fi
 
         echo $INSTALL_DIR >> $GITHUB_PATH

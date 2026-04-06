@@ -1,7 +1,7 @@
 name: merge-multiarch-images
 description: merge multi-arch images based on images digests provided
 inputs:
-  digest_artifact_prefix:
+  digest-artifact-prefix:
     description: the prefix of the artifact filename
     default: digest-
   component:
@@ -15,7 +15,7 @@ inputs:
   arch:
     description: The list of image architecture for this action to merge (comma-separated)
     default: amd64,arm64
-  GITHUB_TOKEN:
+  github-token:
     description: |
       The GitHub token with permission to publish images to ghcr.
     required: true
@@ -26,7 +26,7 @@ runs:
       uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
       with:
         path: ${{ runner.temp }}/digests
-        pattern: ${{ inputs.digest_artifact_prefix}}${{ inputs.component }}-*
+        pattern: ${{ inputs.digest-artifact-prefix}}${{ inputs.component }}-*
         merge-multiple: true
     - name: Install cosign
       uses: sigstore/cosign-installer@cad07c2e89fa2edd6e2d7bab4c1aa38e53f76003 # v4.1.1
@@ -35,7 +35,7 @@ runs:
       with:
         registry: ghcr.io
         username: ${{ github.repository_owner }}
-        password: ${{ inputs.GITHUB_TOKEN }}
+        password: ${{ inputs.github-token }}
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
     - name: Create and push multi-arch manifest for ${{ inputs.component }}
