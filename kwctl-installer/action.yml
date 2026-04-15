@@ -14,15 +14,23 @@ runs:
     - uses: sigstore/cosign-installer@cad07c2e89fa2edd6e2d7bab4c1aa38e53f76003 # v4.1.1
 
     - shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
       run: |
         #!/bin/bash
         set -euo pipefail
 
         KWCTL_VERSION="${{ inputs.kwctl-version }}"
+
+        if [[ "$KWCTL_VERSION" == "latest" ]]; then
+          KWCTL_VERSION=$(gh release list --repo kubewarden/kubewarden-controller --exclude-drafts --limit 1 --json tagName --jq '.[0].tagName')
+          echo "Resolved latest to: $KWCTL_VERSION"
+        fi
+
         SEMVER_PATTERN='^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$'
 
         if [[ ! "$KWCTL_VERSION" =~ $SEMVER_PATTERN ]]; then
-          echo "Invalid kwctl-version: '$KWCTL_VERSION'. Expected format: v<major>.<minor>.<patch> (optional pre-release/build metadata)."
+          echo "Invalid kwctl-version: '$KWCTL_VERSION'. Expected format: v<major>.<minor>.<patch> (optional pre-release/build metadata), or 'latest'."
           exit 1
         fi
 
