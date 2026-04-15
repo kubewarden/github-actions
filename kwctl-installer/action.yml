@@ -7,16 +7,24 @@ inputs:
   kwctl-version:
     description: "kwctl release to be installed"
     required: false
-    default: "v1.33.1"
+    default: "v1.34.2"
 runs:
   using: "composite"
   steps:
+    - uses: sigstore/cosign-installer@cad07c2e89fa2edd6e2d7bab4c1aa38e53f76003 # v4.1.1
+
     - shell: bash
       run: |
         #!/bin/bash
-        set -e
+        set -euo pipefail
 
         KWCTL_VERSION="${{ inputs.kwctl-version }}"
+        SEMVER_PATTERN='^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$'
+
+        if [[ ! "$KWCTL_VERSION" =~ $SEMVER_PATTERN ]]; then
+          echo "Invalid kwctl-version: '$KWCTL_VERSION'. Expected format: v<major>.<minor>.<patch> (optional pre-release/build metadata)."
+          exit 1
+        fi
 
         # Build name of gihub release asset
         OS=$(echo "${{ runner.os }}" | tr '[:upper:]' '[:lower:]' | sed 's/macos/darwin/')
@@ -24,16 +32,20 @@ runs:
         ASSET="kwctl-${OS}-${ARCH}"
 
         INSTALL_DIR=$HOME/.kwctl
+        ZIP_FILE=$INSTALL_DIR/$ASSET.zip
+        BUNDLE_FILE=$INSTALL_DIR/$ASSET.bundle.sigstore
 
         mkdir -p $INSTALL_DIR
-        curl -sL https://github.com/kubewarden/kubewarden-controller/releases/download/${KWCTL_VERSION}/${ASSET}.zip -o $INSTALL_DIR/$ASSET.zip
-        curl -sL https://github.com/kubewarden/kubewarden-controller/releases/download/${KWCTL_VERSION}/${ASSET}.zip.bundle.sigstore \
-          -o $INSTALL_DIR/$ASSET.zip.bundle.sigstore
-        gh attestation verify $INSTALL_DIR/$ASSET.zip \
-          --bundle $INSTALL_DIR/$ASSET.zip.bundle.sigstore \
-          --repo kubewarden/kubewarden-controller
-        unzip -o $INSTALL_DIR/$ASSET.zip -d $INSTALL_DIR
-        rm $INSTALL_DIR/$ASSET.zip
+        curl -fsSL https://github.com/kubewarden/kubewarden-controller/releases/download/${KWCTL_VERSION}/${ASSET}.zip -o $ZIP_FILE
+        unzip -o $ZIP_FILE -d $INSTALL_DIR
+        rm $ZIP_FILE
+
+        cosign verify-blob \
+          --certificate-oidc-issuer=https://token.actions.githubusercontent.com \
+          --certificate-identity="https://github.com/kubewarden/kubewarden-controller/.github/workflows/build-kwctl.yml@refs/tags/${KWCTL_VERSION}" \
+          --bundle $BUNDLE_FILE \
+          $INSTALL_DIR/$ASSET
+        rm $BUNDLE_FILE
 
         mv $INSTALL_DIR/$ASSET $INSTALL_DIR/kwctl
         chmod 755 $INSTALL_DIR/kwctl
