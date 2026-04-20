@@ -72,7 +72,7 @@ jobs:
           fi
 
       - name: Install Updatecli in the runner
-        uses: updatecli/updatecli-action@7aab164eed4ee3bb279611182ba1e62a3a867640 # v3.1.1
+        uses: updatecli/updatecli-action@af341a800cdbcde3ddcebb7a62410ac06a78a207 # v3.1.2
 
       - uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
         id: generate-token
@@ -83,7 +83,7 @@ jobs:
       - name: Restore cargo-set-version from cache
         if: hashFiles('**/Cargo.toml') != ''
         id: restore-cache
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: ~/.cargo/bin
           key: cargo-edit-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
