@@ -53,20 +53,10 @@ runs:
         provenance: mode=max
         tags: ghcr.io/${{ github.repository_owner }}/${{ inputs.component }}
 
-    # We need to disable the new bundle format enabled by default since
-    # cosign v3.x.x because some verification tools (e.g. slsactl, hauler and old
-    # cosign) are not able to properly verify the signatures using this
-    # new format
-    - name: Sign container image with cosign v2 signature format
+    - name: Sign container image
       shell: bash
       run: |
-        cosign sign --yes --new-bundle-format=false --use-signing-config=false \
-          ghcr.io/${{ github.repository_owner }}/${{ inputs.component }}@${{ steps.build-image.outputs.digest }}
-
-    - name: Sign container image with cosign v3 signature format
-      shell: bash
-      run: |
-        cosign sign --yes --new-bundle-format=true --use-signing-config=true \
+        cosign sign --yes \
           ghcr.io/${{ github.repository_owner }}/${{ inputs.component }}@${{ steps.build-image.outputs.digest }}
 
     - name: Verify container image signature

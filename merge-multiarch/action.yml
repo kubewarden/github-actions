@@ -83,12 +83,7 @@ runs:
           exit 1
         fi
 
-        # Sign the multi-arch image manifest using cosign v2 format
-        cosign sign --yes --new-bundle-format=false --use-signing-config=false \
-          ghcr.io/${{ github.repository_owner }}/${{ inputs.component }}@${multi_arch_manifest_digest}
-
-        # Sign the multi-arch image manifest using cosign v3 format
-        cosign sign --yes --new-bundle-format=true --use-signing-config=true \
+        cosign sign --yes \
           ghcr.io/${{ github.repository_owner }}/${{ inputs.component }}@${multi_arch_manifest_digest}
 
         echo "MULTI_ARCH_MANIFEST_DIGEST=$multi_arch_manifest_digest" >> $GITHUB_ENV
