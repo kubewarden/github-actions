@@ -7,11 +7,11 @@ inputs:
   tinygo-version:
     required: false
     description: "Version of tinygo to use"
-    default: "0.39.0"
+    default: "0.41.0"
   tinygo-checksum:
     required: false
     description: "SHA256 checksum of the tinygo release .deb package"
-    default: "775f15974e35059c8f3a141266bd9d293b5d556a3e44d5e6356c5602e9f386ab"
+    default: "52d57d46f03a8b8e68dd49298aff3b9bb79e1d9b7b2cdf0fa0b0f30b6bac89ec"
   generate-sbom:
     required: false
     description: "Generate and sign SBOM files"
