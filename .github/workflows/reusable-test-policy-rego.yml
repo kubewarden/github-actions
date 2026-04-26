@@ -8,6 +8,11 @@ on:
         required: false
         type: string
         default: .
+      opa-version:
+        description: "opa release to install"
+        required: false
+        type: string
+        default: "v0.65.0"
     secrets: {}
 
 jobs:
@@ -17,6 +22,8 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Install opa
         uses: kubewarden/github-actions/opa-installer@a4c174cd70a6b18027011907c2fa8fc5bb4107fd
+        with:
+          opa-version: ${{ inputs.opa-version }}
       - name: Run unit tests
         working-directory: ${{ inputs.policy-working-dir }}
         run: make test
