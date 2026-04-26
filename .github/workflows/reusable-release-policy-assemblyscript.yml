@@ -22,7 +22,6 @@ jobs:
         uses: kubewarden/github-actions/policy-gh-action-dependencies@a4c174cd70a6b18027011907c2fa8fc5bb4107fd
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          # until https://github.com/actions/checkout/pull/579 is released
           fetch-depth: 0
       - id: calculate-version
         shell: bash
