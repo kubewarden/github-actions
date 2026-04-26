@@ -74,6 +74,13 @@ runs:
 
         # Sign also with cosign v3 signature format
         cosign sign --yes --new-bundle-format=true --use-signing-config=true ${IMMUTABLE_REF}
+    - name: Prepare policy.wasm release asset
+      if: ${{ ! startsWith(github.ref, 'refs/heads/') }}
+      shell: bash
+      working-directory: ${{ inputs.policy-working-dir }}
+      run: |
+        set -euo pipefail
+        cp "${{ inputs.annotated-wasm }}" "$RUNNER_TEMP/policy.wasm"
     - name: Create release
       if: ${{ ! startsWith(github.ref, 'refs/heads/')  && inputs.policy-working-dir != '.' }}
       # if we are on a monorepo, we create a GH release directly and don't reuse a draft release
@@ -86,7 +93,7 @@ runs:
         draft: false
         prerelease: ${{ contains(inputs.policy-version, '-alpha') || contains(inputs.policy-version, '-beta') || contains(inputs.policy-version, '-rc') }}
         files: |
-          ${{ inputs.policy-working-dir }}/policy.wasm
+          ${{ runner.temp }}/policy.wasm
 
     - name: Get release ID from the release created by release drafter
       if: ${{ ! startsWith(github.ref, 'refs/heads/')  && inputs.policy-working-dir == '.' }}
@@ -112,16 +119,13 @@ runs:
       # if we are on a single repo, we obtain the last draft release as it contains the changelog
       # and edit it by adding the artifacts. Then we mark the release as latest
       uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
-      env:
-        POLICY_WORKING_DIR: ${{ inputs.policy-working-dir }}
       with:
         script: |
           let fs = require('fs');
           let path = require('path');
-          let workingDir = process.env.POLICY_WORKING_DIR || '.';
 
           let files = [
-            `${workingDir}/policy.wasm`,
+            `${process.env.RUNNER_TEMP}/policy.wasm`,
           ]
           const {RELEASE_ID} = process.env
 
