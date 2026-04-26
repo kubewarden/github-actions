@@ -9,25 +9,37 @@ inputs:
     required: false
     default: "v0.65.0"
   checksum:
-    description: "SHA256 checksum of the opa release binary"
+    description: "SHA256 checksum of the opa release binary. When unset, the release checksum is downloaded."
     required: false
-    default: "cd6b0b2d762571a746f0261890b155e6dd71cca90dad6b42b6fcf6dd7f619f08"
+    default: ""
 runs:
   using: "composite"
   steps:
     - shell: bash
       run: |
         #!/bin/bash
-        set -e
+        set -euo pipefail
 
         VERSION="${{ inputs.opa-version }}"
         CHECKSUM="${{ inputs.checksum }}"
-        INSTALL_DIR=$HOME/.opa
+        INSTALL_DIR="$HOME/.opa"
+        OPA_BINARY="opa_linux_amd64_static"
+        CHECKSUM_FILE="${OPA_BINARY}.sha256"
 
-        mkdir -p $INSTALL_DIR
+        mkdir -p "$INSTALL_DIR"
 
-        curl -sL https://github.com/open-policy-agent/opa/releases/download/${VERSION}/opa_linux_amd64_static -o $INSTALL_DIR/opa
-        echo "${CHECKSUM}  $INSTALL_DIR/opa" | sha256sum --check
+        curl -fsSL "https://github.com/open-policy-agent/opa/releases/download/${VERSION}/${OPA_BINARY}" -o "$INSTALL_DIR/$OPA_BINARY"
+        if [ -z "$CHECKSUM" ]; then
+          curl -fsSL "https://github.com/open-policy-agent/opa/releases/download/${VERSION}/${CHECKSUM_FILE}" -o "$INSTALL_DIR/$CHECKSUM_FILE"
+        else
+          printf "%s  %s\n" "$CHECKSUM" "$OPA_BINARY" > "$INSTALL_DIR/$CHECKSUM_FILE"
+        fi
 
-        chmod 755 $INSTALL_DIR/opa
-        echo $INSTALL_DIR >> $GITHUB_PATH
+        (
+          cd "$INSTALL_DIR"
+          sha256sum --check "$CHECKSUM_FILE"
+        )
+
+        mv "$INSTALL_DIR/$OPA_BINARY" "$INSTALL_DIR/opa"
+        chmod 755 "$INSTALL_DIR/opa"
+        echo "$INSTALL_DIR" >> "$GITHUB_PATH"
