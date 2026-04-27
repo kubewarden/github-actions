@@ -22,7 +22,7 @@ runs:
         rustup override set stable
     - name: Build Wasm module
       shell: bash
-      run: cargo build --target=wasm32-wasip1 --release
+      run: cargo build --target=wasm32-wasip1 --release --locked
     - name: Rename Wasm module
       shell: bash
       run: |
