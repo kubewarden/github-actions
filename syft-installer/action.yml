@@ -52,7 +52,7 @@ runs:
           rm $INSTALL_DIR/syft.zip
         else
           curl -sL https://github.com/anchore/syft/releases/download/v${VERSION}/syft_${VERSION}_${ARCH}.tar.gz -o $INSTALL_DIR/syft.tar.gz
-          echo "${CHECKSUM}  $INSTALL_DIR/syft.tar.gz" | sha256sum --check
+          echo "${CHECKSUM}  $INSTALL_DIR/syft.tar.gz" | shasum -a 256 --check
           tar xvf $INSTALL_DIR/syft.tar.gz -C $INSTALL_DIR
           rm $INSTALL_DIR/syft.tar.gz
         fi
