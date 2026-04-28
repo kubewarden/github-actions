@@ -18,16 +18,18 @@ runs:
     - shell: bash
       run: |
         #!/bin/bash
-        set -e
+        set -euo pipefail
 
         VERSION="${{ inputs.opa-version }}"
         CHECKSUM="${{ inputs.checksum }}"
-        INSTALL_DIR=$HOME/.opa
+        INSTALL_DIR="$HOME/.opa"
+        OPA_BINARY="opa_linux_amd64_static"
 
-        mkdir -p $INSTALL_DIR
+        mkdir -p "$INSTALL_DIR"
 
-        curl -sL https://github.com/open-policy-agent/opa/releases/download/${VERSION}/opa_linux_amd64_static -o $INSTALL_DIR/opa
-        echo "${CHECKSUM}  $INSTALL_DIR/opa" | sha256sum --check
+        curl -fsSL "https://github.com/open-policy-agent/opa/releases/download/${VERSION}/${OPA_BINARY}" -o "$INSTALL_DIR/$OPA_BINARY"
+        printf "%s  %s\n" "$CHECKSUM" "$INSTALL_DIR/$OPA_BINARY" | sha256sum --check
 
-        chmod 755 $INSTALL_DIR/opa
-        echo $INSTALL_DIR >> $GITHUB_PATH
+        mv "$INSTALL_DIR/$OPA_BINARY" "$INSTALL_DIR/opa"
+        chmod 755 "$INSTALL_DIR/opa"
+        echo "$INSTALL_DIR" >> "$GITHUB_PATH"

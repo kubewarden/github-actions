@@ -8,6 +8,16 @@ on:
         required: false
         type: string
         default: .
+      opa-version:
+        description: "opa release to install"
+        required: false
+        type: string
+        default: "v0.65.0"
+      opa-checksum:
+        description: "SHA256 checksum of the opa release binary"
+        required: false
+        type: string
+        default: "cd6b0b2d762571a746f0261890b155e6dd71cca90dad6b42b6fcf6dd7f619f08"
     secrets: {}
 
 jobs:
@@ -17,6 +27,9 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Install opa
         uses: kubewarden/github-actions/opa-installer@9bb758a49be7721e7862a6ae9c53f64766fc1215
+        with:
+          opa-version: ${{ inputs.opa-version }}
+          checksum: ${{ inputs.opa-checksum }}
       - name: Run unit tests
         working-directory: ${{ inputs.policy-working-dir }}
         run: make test
