@@ -84,16 +84,67 @@ runs:
     - name: Create release
       if: ${{ ! startsWith(github.ref, 'refs/heads/')  && inputs.policy-working-dir != '.' }}
       # if we are on a monorepo, we create a GH release directly and don't reuse a draft release
-      uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
-      env:
-        GITHUB_TOKEN: ${{ inputs.github-token }}
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
       with:
-        tag_name: ${{ github.ref }}
-        name: ${{ github.ref_name }}
-        draft: false
-        prerelease: ${{ contains(inputs.policy-version, '-alpha') || contains(inputs.policy-version, '-beta') || contains(inputs.policy-version, '-rc') }}
-        files: |
-          ${{ runner.temp }}/policy.wasm
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+
+          const tagName = '${{ github.ref_name }}';
+          const isPreRelease = ${{ contains(inputs.policy-version, '-alpha') || contains(inputs.policy-version, '-beta') || contains(inputs.policy-version, '-rc') }};
+          const owner = context.repo.owner;
+          const repo = context.repo.repo;
+
+          let release;
+          try {
+            release = await github.rest.repos.getReleaseByTag({
+              owner,
+              repo,
+              tag: tagName,
+            });
+            release = await github.rest.repos.updateRelease({
+              owner,
+              repo,
+              release_id: release.data.id,
+              name: tagName,
+              draft: false,
+              prerelease: isPreRelease,
+            });
+          } catch (error) {
+            if (error.status !== 404) {
+              throw error;
+            }
+            release = await github.rest.repos.createRelease({
+              owner,
+              repo,
+              tag_name: tagName,
+              name: tagName,
+              draft: false,
+              prerelease: isPreRelease,
+            });
+          }
+
+          const file = `${process.env.RUNNER_TEMP}/policy.wasm`;
+          const fileData = fs.readFileSync(file);
+          const assetName = path.basename(file);
+          const existingAsset = (release.data.assets || []).find((asset) => asset.name === assetName);
+
+          if (existingAsset) {
+            await github.rest.repos.deleteReleaseAsset({
+              owner,
+              repo,
+              asset_id: existingAsset.id,
+            });
+          }
+
+          await github.rest.repos.uploadReleaseAsset({
+            owner,
+            repo,
+            release_id: release.data.id,
+            name: assetName,
+            data: fileData,
+          });
 
     - name: Get release ID from the release created by release drafter
       if: ${{ ! startsWith(github.ref, 'refs/heads/')  && inputs.policy-working-dir == '.' }}
