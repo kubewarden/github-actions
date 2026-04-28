@@ -7,7 +7,7 @@ inputs:
   kwctl-version:
     description: "kwctl release to be installed"
     required: false
-    default: "v1.34.2"
+    default: "v1.35.0"
 runs:
   using: "composite"
   steps:
