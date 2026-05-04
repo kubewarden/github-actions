@@ -16,6 +16,11 @@ inputs:
     description: |
       Target platform for Docker build (e.g., linux/amd64, linux/arm64)
     required: true
+  namespace:
+    description: |
+      Path prefix for the container image name. The image becomes
+      ghcr.io/<owner>/<namespace>/<component>.
+    required: true
   github-token:
     description: |
       The GitHub token with permission to publish images to ghcr.
@@ -35,11 +40,16 @@ runs:
         registry: ghcr.io
         username: ${{ github.repository_owner }}
         password: ${{ inputs.github-token }}
+    - name: Compute image name
+      id: image
+      shell: bash
+      run: |
+        echo "name=ghcr.io/${{ github.repository_owner }}/${{ inputs.namespace }}/${{ inputs.component }}" >> "$GITHUB_OUTPUT"
     - name: Docker meta
       id: meta
       uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
       with:
-        images: ghcr.io/${{ github.repository_owner }}/${{ inputs.component }}
+        images: ${{ steps.image.outputs.name }}
     - name: Build and push ${{ inputs.component }} for ${{ inputs.arch }}
       id: build-image
       uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
@@ -51,7 +61,7 @@ runs:
         push: true
         sbom: true
         provenance: mode=max
-        tags: ghcr.io/${{ github.repository_owner }}/${{ inputs.component }}
+        tags: ${{ steps.image.outputs.name }}
 
     # We need to disable the new bundle format enabled by default since
     # cosign v3.x.x because some verification tools (e.g. slsactl, hauler and old
@@ -61,13 +71,13 @@ runs:
       shell: bash
       run: |
         cosign sign --yes --new-bundle-format=false --use-signing-config=false \
-          ghcr.io/${{ github.repository_owner }}/${{ inputs.component }}@${{ steps.build-image.outputs.digest }}
+          ${{ steps.image.outputs.name }}@${{ steps.build-image.outputs.digest }}
 
     - name: Sign container image with cosign v3 signature format
       shell: bash
       run: |
         cosign sign --yes --new-bundle-format=true --use-signing-config=true \
-          ghcr.io/${{ github.repository_owner }}/${{ inputs.component }}@${{ steps.build-image.outputs.digest }}
+          ${{ steps.image.outputs.name }}@${{ steps.build-image.outputs.digest }}
 
     - name: Verify container image signature
       shell: bash
@@ -75,7 +85,7 @@ runs:
         cosign verify \
           --certificate-oidc-issuer=https://token.actions.githubusercontent.com \
           --certificate-identity="${{ github.server_url }}/${{ github.workflow_ref }}" \
-          ghcr.io/${{ github.repository_owner }}/${{ inputs.component }}@${{ steps.build-image.outputs.digest }}
+          ${{ steps.image.outputs.name }}@${{ steps.build-image.outputs.digest }}
 
     - name: Export digest
       shell: bash
