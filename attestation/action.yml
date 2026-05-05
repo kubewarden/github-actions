@@ -8,6 +8,11 @@ inputs:
   arch:
     description: architecture being processed
     required: true
+  namespace:
+    description: |
+      Path prefix for the container image name. The image becomes
+      ghcr.io/<owner>/<namespace>/<component>.
+    required: true
   github-token:
     description: |
       The GitHub token with permission to publish images to ghcr.
@@ -42,7 +47,7 @@ runs:
       shell: bash
       run: |
         set -e
-        DIGEST=$(crane manifest ghcr.io/${{ github.repository_owner }}/${{ inputs.component }}@${{ env.DIGEST }} \
+        DIGEST=$(crane manifest ghcr.io/${{ github.repository_owner }}/${{ inputs.namespace }}/${{ inputs.component }}@${{ env.DIGEST }} \
         | jq -r '.manifests[]
           | select(.annotations["vnd.docker.reference.type"] == "attestation-manifest")
           | .digest')
@@ -55,7 +60,7 @@ runs:
       shell: bash
       run: |
         set -e
-        DIGEST=$(crane manifest ghcr.io/${{ github.repository_owner }}/${{ inputs.component }}@${{ env.ATTESTATION_MANIFEST_DIGEST }} |
+        DIGEST=$(crane manifest ghcr.io/${{ github.repository_owner }}/${{ inputs.namespace }}/${{ inputs.component }}@${{ env.ATTESTATION_MANIFEST_DIGEST }} |
                     jq -r '.layers[]
                       | select(.annotations["in-toto.io/predicate-type"] == "https://slsa.dev/provenance/v1")
                       | .digest')
@@ -68,7 +73,7 @@ runs:
       shell: bash
       run: |
         set -e
-        DIGEST=$(crane manifest ghcr.io/${{ github.repository_owner }}/${{ inputs.component }}@${{ env.ATTESTATION_MANIFEST_DIGEST}} |  \
+        DIGEST=$(crane manifest ghcr.io/${{ github.repository_owner }}/${{ inputs.namespace }}/${{ inputs.component }}@${{ env.ATTESTATION_MANIFEST_DIGEST}} |  \
           jq -r '.layers
             | map(select(.annotations["in-toto.io/predicate-type"] == "https://spdx.dev/Document"))
             | map(.digest)
@@ -89,9 +94,9 @@ runs:
       shell: bash
       run: |
         set -e
-        crane blob ghcr.io/${{ github.repository_owner }}/${{ inputs.component }}@${{ env.PROVENANCE_DIGEST}} \
+        crane blob ghcr.io/${{ github.repository_owner }}/${{ inputs.namespace }}/${{ inputs.component }}@${{ env.PROVENANCE_DIGEST}} \
           > ${{ inputs.component }}-attestation-${{ inputs.arch }}-provenance.intoto.jsonl
-        crane blob ghcr.io/${{ github.repository_owner }}/${{ inputs.component }}@${{ env.SBOM_DIGEST}} \
+        crane blob ghcr.io/${{ github.repository_owner }}/${{ inputs.namespace }}/${{ inputs.component }}@${{ env.SBOM_DIGEST}} \
           > ${{ inputs.component }}-attestation-${{ inputs.arch }}-sbom.json
     - name: Sign provenance and SBOM files
       shell: bash
