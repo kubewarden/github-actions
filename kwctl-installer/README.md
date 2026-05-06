@@ -15,5 +15,5 @@ The downloaded zip contains both the `kwctl` binary and its
 * `KWCTL_VERSION`: (**optional**) the version of kwctl to be downloaded.
   Accepts a specific semver tag (e.g. `v1.34.2`) or the special value
   `latest`, which resolves to the most recent release in
-  `kubewarden/kubewarden-controller` (including `rc`, `alpha`, and `beta`
+  `kubewarden/adm-controller` (including `rc`, `alpha`, and `beta`
   pre-releases).
