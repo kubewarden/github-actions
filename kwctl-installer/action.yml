@@ -23,7 +23,7 @@ runs:
         KWCTL_VERSION="${{ inputs.kwctl-version }}"
 
         if [[ "$KWCTL_VERSION" == "latest" ]]; then
-          KWCTL_VERSION=$(gh release list --repo kubewarden/kubewarden-controller --exclude-drafts --limit 1 --json tagName --jq '.[0].tagName')
+          KWCTL_VERSION=$(gh release list --repo kubewarden/adm-controller --exclude-drafts --limit 1 --json tagName --jq '.[0].tagName')
           echo "Resolved latest to: $KWCTL_VERSION"
         fi
 
@@ -44,13 +44,13 @@ runs:
         BUNDLE_FILE=$INSTALL_DIR/$ASSET.bundle.sigstore
 
         mkdir -p $INSTALL_DIR
-        curl -fsSL https://github.com/kubewarden/kubewarden-controller/releases/download/${KWCTL_VERSION}/${ASSET}.zip -o $ZIP_FILE
+        curl -fsSL https://github.com/kubewarden/adm-controller/releases/download/${KWCTL_VERSION}/${ASSET}.zip -o $ZIP_FILE
         unzip -o $ZIP_FILE -d $INSTALL_DIR
         rm $ZIP_FILE
 
         cosign verify-blob \
           --certificate-oidc-issuer=https://token.actions.githubusercontent.com \
-          --certificate-identity="https://github.com/kubewarden/kubewarden-controller/.github/workflows/build-kwctl.yml@refs/tags/${KWCTL_VERSION}" \
+          --certificate-identity="https://github.com/kubewarden/adm-controller/.github/workflows/build-kwctl.yml@refs/tags/${KWCTL_VERSION}" \
           --bundle $BUNDLE_FILE \
           $INSTALL_DIR/$ASSET
         rm $BUNDLE_FILE

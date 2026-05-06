@@ -6,7 +6,7 @@ inputs:
     default: digest-
   component:
     description: |
-      The component name (e.g., policy-server, kubewarden-controller, audit-scanner)
+      The component name (e.g., policy-server, controller, audit-scanner)
     required: true
   tag:
     description: |
