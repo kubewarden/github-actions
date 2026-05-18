@@ -11,6 +11,9 @@
     "enabled": true,
     "automerge": true
   },
+  "postUpdateOptions": [
+    "gomodTidy"
+  ],
   "packageRules": [
     {
       "_comment": "bundle dependencies updates together",
