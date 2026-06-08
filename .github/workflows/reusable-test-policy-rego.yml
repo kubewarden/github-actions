@@ -14,7 +14,7 @@ jobs:
   unit-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - name: Install opa
         uses: kubewarden/github-actions/opa-installer@1a674c5c7f808bbe48765e5f9a01c6818a3642ac
       - name: Run unit tests
