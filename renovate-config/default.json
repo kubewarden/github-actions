@@ -35,5 +35,9 @@
   "prHourlyLimit": 0,
   "prConcurrentLimit": 0,
   "semanticCommits": "enabled",
-  "semanticCommitType": "build"
+  "semanticCommitType": "build",
+  "minimumReleaseAge": "7 days",
+  "vulnerabilityAlerts": {
+    "minimumReleaseAge": "0 days"
+  }
 }
