@@ -1,0 +1,167 @@
+name: Chart release
+
+# Reusable workflow. Pushes one packaged Helm chart to ghcr.io, signs it with
+# cosign, and attests it with `actions/attest`.
+#
+# Same design as container-release.yml: this runs as its own job, with its
+# own OIDC token that names this file in `job_workflow_ref`. `actions/attest`
+# writes the provenance from that token. The caller cannot forge it. That is
+# what gives the charts SLSA Build L3.
+#
+# Identity of every signature and attestation this workflow produces:
+#   https://github.com/kubewarden/github-actions/.github/workflows/chart-release.yml@<ref>
+#
+# The caller packages the chart (`cr package`) and uploads the `.tgz` as a
+# workflow artifact. This workflow downloads that artifact, pushes it, signs
+# it, and attests it. The caller keeps the GitHub release and the Helm
+# repository index, because those steps are not repeatable.
+
+# No default token permissions. Each job declares exactly what it needs.
+permissions: {}
+
+on:
+  workflow_call:
+    inputs:
+      artifact-name:
+        description: |
+          Name of the workflow artifact that holds the packaged charts
+          (`<name>-<version>.tgz` files).
+        required: true
+        type: string
+      chart-name:
+        description: |
+          Name of the chart to publish. The workflow picks
+          `<chart-name>-*.tgz` out of the artifact.
+        required: true
+        type: string
+      oci-repository:
+        description: |
+          OCI repository to push to, without the chart name. The chart goes
+          to `oci://<oci-repository>/<chart-name>:<chart-version>`.
+        required: false
+        type: string
+        default: ""
+    outputs:
+      digest:
+        description: Digest of the pushed chart.
+        value: ${{ jobs.publish.outputs.digest }}
+      chart-name:
+        description: Name of the pushed chart.
+        value: ${{ jobs.publish.outputs.chart-name }}
+      chart-version:
+        description: Version of the pushed chart.
+        value: ${{ jobs.publish.outputs.chart-version }}
+
+env:
+  SIGNER_IDENTITY_REGEXP: '^https://github\.com/kubewarden/github-actions/\.github/workflows/chart-release\.yml@'
+  OIDC_ISSUER: https://token.actions.githubusercontent.com
+
+jobs:
+  publish:
+    name: Push, sign and attest
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # Push the chart and the attestation referrer to ghcr.io
+      id-token: write # Sign with cosign, attest with actions/attest
+      attestations: write # actions/attest
+    outputs:
+      digest: ${{ steps.push.outputs.digest }}
+      chart-name: ${{ steps.push.outputs.chart-name }}
+      chart-version: ${{ steps.push.outputs.chart-version }}
+    steps:
+      - name: Download the packaged chart
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: ${{ runner.temp }}/chart
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push the chart to ghcr.io
+        id: push
+        working-directory: ${{ runner.temp }}/chart
+        env:
+          OWNER: ${{ github.repository_owner }}
+          OCI_REPOSITORY: ${{ inputs.oci-repository }}
+          CHART_NAME: ${{ inputs.chart-name }}
+        run: |
+          set -e
+          # Pick this chart out of the artifact. A chart name can be a prefix
+          # of another (kubewarden-controller, kubewarden-controller-foo), so
+          # match <name>-<digit> and check the name from the chart metadata.
+          chart_path=""
+          for f in "${CHART_NAME}"-[0-9]*.tgz; do
+            [ -f "$f" ] || continue
+            if [ "$(helm show chart "$f" | yq -r '.name')" = "${CHART_NAME}" ]; then
+              chart_path="$f"
+              break
+            fi
+          done
+          if [ -z "$chart_path" ]; then
+            echo "Error: no packaged chart named ${CHART_NAME} in the artifact"
+            ls -la
+            exit 1
+          fi
+          chart_name="${CHART_NAME}"
+          chart_version=$(helm show chart "$chart_path" | yq -r '.version')
+          registry="${OCI_REPOSITORY:-ghcr.io/${OWNER}/charts}"
+
+          push_output=$(helm push "$chart_path" "oci://${registry}" 2>&1)
+          echo "$push_output"
+          digest=$(echo "$push_output" | sed -n 's/.*Digest: \(sha256:[0-9a-f]*\).*/\1/p')
+          if [ -z "$digest" ]; then
+            echo "Error: the helm push output has no digest"
+            exit 1
+          fi
+
+          {
+            echo "chart-name=${chart_name}"
+            echo "chart-version=${chart_version}"
+            echo "digest=${digest}"
+            echo "ref=${registry}/${chart_name}"
+          } >> "$GITHUB_OUTPUT"
+
+      # Two signature formats. Some verifiers (slsactl, hauler, older cosign)
+      # read only the v2 format. Newer cosign reads the v3 bundle format.
+      - name: Sign the chart (cosign v2 signature format)
+        env:
+          REF: ${{ steps.push.outputs.ref }}
+          DIGEST: ${{ steps.push.outputs.digest }}
+        run: |
+          cosign sign --yes --new-bundle-format=false --use-signing-config=false \
+            "${REF}@${DIGEST}"
+
+      - name: Sign the chart (cosign v3 signature format)
+        env:
+          REF: ${{ steps.push.outputs.ref }}
+          DIGEST: ${{ steps.push.outputs.digest }}
+        run: |
+          cosign sign --yes --new-bundle-format=true --use-signing-config=true \
+            "${REF}@${DIGEST}"
+
+      - name: Verify the chart signature
+        env:
+          REF: ${{ steps.push.outputs.ref }}
+          DIGEST: ${{ steps.push.outputs.digest }}
+        run: |
+          cosign verify \
+            --certificate-oidc-issuer="${OIDC_ISSUER}" \
+            --certificate-identity-regexp="${SIGNER_IDENTITY_REGEXP}" \
+            "${REF}@${DIGEST}"
+
+      # This step gives the chart SLSA Build L3. See the header comment.
+      - name: Attest build provenance (SLSA L3)
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-name: ${{ steps.push.outputs.ref }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
