@@ -128,7 +128,14 @@ jobs:
         with:
           images: ${{ steps.image.outputs.name }}
 
-      - name: Build and push
+      # Push the per-architecture image by digest only, with no tag. A bare
+      # image name means `:latest`. Two architectures that race to write
+      # `:latest` leave it pointing at whichever single-arch build finished
+      # last, and pulls for the other architecture fail. With
+      # `push-by-digest=true` the `merge` job is the only job that writes a
+      # tag, and it writes a complete multi-arch index. `tags:` stays: with
+      # `name-canonical=true` it names the repository and creates no tag.
+      - name: Build and push by digest
         id: build-image
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
@@ -142,6 +149,7 @@ jobs:
           sbom: true
           provenance: mode=max
           tags: ${{ steps.image.outputs.name }}
+          outputs: type=image,push=true,push-by-digest=true,name-canonical=true
 
       # Two signature formats. Some verifiers (slsactl, hauler, older cosign)
       # read only the v2 format. Newer cosign reads the v3 bundle format.
