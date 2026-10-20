@@ -12,7 +12,7 @@ runs:
   using: "composite"
   steps:
     - name: Install kwctl
-      uses: kubewarden/github-actions/kwctl-installer@1a674c5c7f808bbe48765e5f9a01c6818a3642ac
+      uses: kubewarden/github-actions/kwctl-installer@01a45c98ad1082f37bc395989ddd157a3ce911a4
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
