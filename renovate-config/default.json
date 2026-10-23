@@ -29,6 +29,56 @@
       ],
       "semanticCommits": "enabled",
       "semanticCommitType": "build"
+    },
+    {
+      "description": "Update the Go compiler when a new version is released. Put the update in its own pull request.",
+      "matchDatasources": [
+        "golang-version"
+      ],
+      "minimumReleaseAge": "0 days",
+      "groupName": "Go compiler",
+      "groupSlug": "go-compiler"
+    },
+    {
+      "description": "Update the go directive in go.mod",
+      "matchManagers": [
+        "gomod"
+      ],
+      "matchDepTypes": [
+        "golang"
+      ],
+      "matchDepNames": [
+        "go"
+      ],
+      "rangeStrategy": "bump"
+    },
+    {
+      "description": "Update the Go builder images together with the Go compiler",
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "golang",
+        "docker.io/library/golang",
+        "registry.suse.com/bci/golang"
+      ],
+      "minimumReleaseAge": "0 days",
+      "groupName": "Go compiler",
+      "groupSlug": "go-compiler"
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Update the Go version used by the golangci-lint pre-commit hooks",
+      "managerFilePatterns": [
+        "/(^|/)\\.pre-commit-config\\.ya?ml$/"
+      ],
+      "matchStrings": [
+        "id:\\s*golangci-lint[\\w-]*[^\\n]*\\n(?:[ \\t]+[^-\\s][^\\n]*\\n)*?[ \\t]+language_version:\\s*['\"]?(?<currentValue>[^'\"\\s]+)['\"]?"
+      ],
+      "depNameTemplate": "go",
+      "datasourceTemplate": "golang-version"
     }
   ],
   "rebaseWhen": "behind-base-branch",
