@@ -28,6 +28,12 @@ name: Container release
 # identity, repository and commit, and compare every field with their own
 # before they use the digest. A caller job cannot mint that identity, and a
 # record from another run, component or arch fails the field checks.
+#
+# Release tags: all the callers share one signer identity, and some verifiers,
+# such as Hauler, cannot check the git ref. So the `check-ref` job ties the
+# image tag to the git ref of the run. The check needs git tags that nobody can
+# move. The callers repositories' tag ruleset shuld block updates and
+# deletions.
 
 # No default token permissions. Each job declares exactly what it needs.
 permissions: {}
@@ -57,7 +63,9 @@ on:
           Release tag, for example v1.2.3. When set, the images get this tag
           and the `attest` job produces the signed SBOM and provenance files
           for the GitHub release. When empty, the images get the tag `latest`
-          and the `attest` job does not run.
+          and the `attest` job does not run. If you set the value, it must be
+          the name of the git tag of the run. Otherwise the run fails. On a
+          branch, leave it empty.
         required: false
         type: string
         default: ""
@@ -66,7 +74,9 @@ on:
           Image tag to push. Overrides the default (`version`, or `latest`
           when `version` is empty). Use it for branch builds that need a tag
           other than `latest`, for example `latest-feat-foo`. It does not
-          turn on the `attest` job.
+          turn on the `attest` job. If you set the value on a git tag, it must
+          be the name of that git tag. If you set it on a branch, it must be
+          `latest` or start with `latest-`. Otherwise the run fails.
         required: false
         type: string
         default: ""
@@ -83,8 +93,39 @@ env:
   OIDC_ISSUER: https://token.actions.githubusercontent.com
 
 jobs:
+  check-ref:
+    name: Check the git ref
+    permissions: {}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Make sure that the image tag matches the git ref
+        env:
+          VERSION: ${{ inputs.version }}
+          TAG: ${{ inputs.tag }}
+          REF: ${{ github.ref }}
+        run: |
+          set -e
+          if [[ -n "$VERSION" && "$REF" != "refs/tags/${VERSION}" ]]; then
+            echo "::error::The version input is '${VERSION}' but the git ref is '${REF}'. Run the release from the git tag '${VERSION}', or remove the version input."
+            exit 1
+          fi
+          if [[ "$REF" == refs/tags/* ]]; then
+            GIT_TAG="${REF#refs/tags/}"
+            if [[ -n "$TAG" && "$TAG" != "$GIT_TAG" ]]; then
+              echo "::error::The tag input is '${TAG}' but the git tag of the run is '${GIT_TAG}'. Set the tag input to '${GIT_TAG}', or remove it."
+              exit 1
+            fi
+            exit 0
+          fi
+          if [[ -z "$TAG" || "$TAG" == "latest" || "$TAG" == latest-* ]]; then
+            exit 0
+          fi
+          echo "::error::The tag input is '${TAG}' but the git ref '${REF}' is not a git tag. On a branch, the tag input must be empty, 'latest', or start with 'latest-'."
+          exit 1
+
   build:
     name: Build ${{ matrix.component }} (${{ matrix.arch }})
+    needs: [check-ref]
     strategy:
       fail-fast: false
       matrix:
