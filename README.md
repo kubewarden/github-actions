@@ -19,6 +19,16 @@ components, the image namespace and the release tag. The workflow builds each
 image for `amd64` and `arm64`, signs it with cosign, creates the multi-arch
 manifest, and runs `actions/attest` on the manifest digest.
 
+The workflow ties the image tag to the git ref of the run. If the run starts
+from a git tag, the `version` and `tag` inputs must be empty or match that git
+tag. If the run starts from a branch, `version` must be empty. The `tag` input
+must be empty, `latest`, or start with `latest-`. Otherwise the run fails
+before it builds an image.
+
+A caller can still call an older commit of the workflow that has no check. A
+verifier that must exclude such images has to accept only the commits of the
+workflow that have the check.
+
 This workflow is what gives the images SLSA Build L3. A reusable workflow runs
 as its own job, with its own OIDC token. `actions/attest` writes the provenance
 from that token. A build step in the caller cannot change it. The signer
