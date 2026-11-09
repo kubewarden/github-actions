@@ -28,6 +28,15 @@
       ],
       "semanticCommits": "enabled",
       "semanticCommitType": "build"
+    },
+    {
+      "description": "Add a warning to lock file maintenance pull requests. The package manager selects the new versions, and Renovate cannot read their release dates.",
+      "matchUpdateTypes": [
+        "lockFileMaintenance"
+      ],
+      "prBodyNotes": [
+        "> [!WARNING]\n> Renovate cannot check the release dates of the versions that lock file maintenance selects, so the minimum release age (the wait time after a release) cannot protect this update. The lock file can contain new versions that were released less than `minimumReleaseAge` ago. Before you merge, look at the new versions in the lock file."
+      ]
     }
   ],
   "rebaseWhen": "behind-base-branch",
