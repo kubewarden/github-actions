@@ -19,6 +19,24 @@ components, the image namespace and the release tag. The workflow builds each
 image for `amd64` and `arm64`, signs it with cosign, creates the multi-arch
 manifest, and runs `actions/attest` on the manifest digest.
 
+By default, each component builds from its own file, `Dockerfile.<component>`,
+and the image is the last stage of that file. A repository can also build
+several components from one Dockerfile. Set the `dockerfile` input to the name
+of that file. Each component then builds the stage that has the name of the
+component. The build fails if the file has no such stage. All the components of
+one call share the value of `dockerfile`, so a repository that mixes both
+styles makes one call for each.
+
+```yaml
+jobs:
+  build-rust:
+    uses: kubewarden/github-actions/.github/workflows/container-release.yml@<ref>
+    with:
+      components: '["policy-server"]'
+      image-namespace: my-repo
+      dockerfile: Dockerfile.rust
+```
+
 The workflow ties the image tag to the git ref of the run. If the run starts
 from a git tag, the `version` and `tag` inputs must be empty or match that git
 tag. If the run starts from a branch, `version` must be empty. The `tag` input
