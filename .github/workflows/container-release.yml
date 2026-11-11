@@ -43,7 +43,8 @@ on:
       components:
         description: |
           JSON array of component names, for example '["controller","agent"]'.
-          Each component has a Dockerfile named `Dockerfile.<component>`.
+          Each component has a Dockerfile named `Dockerfile.<component>`,
+          unless the `dockerfile` input is set.
         required: true
         type: string
       image-namespace:
@@ -53,10 +54,22 @@ on:
         required: true
         type: string
       dockerfile-dir:
-        description: Directory that holds the Dockerfile.<component> files.
+        description: |
+          Directory that holds the Dockerfile.<component> files, or the
+          Dockerfile of the `dockerfile` input.
         required: false
         type: string
         default: "."
+      dockerfile:
+        description: |
+          Name of one Dockerfile in `dockerfile-dir` that all the components
+          of this call share. Each component then builds the stage of that
+          Dockerfile which has the name of the component. The build fails if
+          the Dockerfile has no such stage. When empty, each component uses
+          `Dockerfile.<component>` and builds its last stage.
+        required: false
+        type: string
+        default: ""
       version:
         description: |
           Release tag, for example v1.2.3. When set, the images get this tag
@@ -192,7 +205,8 @@ jobs:
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
-          file: ${{ inputs.dockerfile-dir }}/Dockerfile.${{ matrix.component }}
+          file: ${{ inputs.dockerfile-dir }}/${{ inputs.dockerfile || format('Dockerfile.{0}', matrix.component) }}
+          target: ${{ inputs.dockerfile != '' && matrix.component || '' }}
           build-args: |
             VERSION=${{ inputs.version || 'dev' }}
           labels: ${{ steps.meta.outputs.labels }}
