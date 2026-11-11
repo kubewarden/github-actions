@@ -82,14 +82,91 @@ management"](https://docs.github.com/en/actions/creating-actions/about-custom-ac
 
 ### Releasing a new tag
 
-1. We ourselves are consumers of our own GHA in this repo, as we
-   consume the actions in the reusable workflows. To release, decide on the
-   future tag version you will create, and then, preemptively update all the
-   tags of our own github-actions in this repo to that one, and commit those changes.
-   
-   We can't use RenovateBot or the like, as it would update the tags *after* we
-   have already tagged, so the tagged version would not consume itself, but a
-   previous version.
-1. Tag your release with a semver tag (e.g: `v2.3.0`).
-1. Proof-check the GH release notes created by release drafter. Add hints on how
-   to update to new version if needed.
+This repository uses its own actions. The calls have two levels:
+
+1. A reusable workflow calls an action, for example
+   `policy-gh-action-dependencies`.
+1. That action calls an installer action, for example `kwctl-installer`.
+
+Each of these calls is a self-reference. A self-reference names a full commit
+SHA, not a tag. GitHub reads the called file from that commit. It does not read
+the file from the tag that the user called.
+
+A commit cannot contain its own SHA. As a result, the self-references in a
+commit always point at older commits. A pin commit is a commit that only
+updates the self-references. The `scripts/update-kubewarden-refs.sh` script
+replaces the SHA of each self-reference with the SHA of `HEAD`. Renovate
+ignores the self-references, because it can update them only after the tag
+exists.
+
+A release needs two pin commits, because the self-references have two levels.
+In the tables that follow, `A` is the last commit before the pin commits.
+
+The first pin commit, `P1`, points each self-reference at `A`. If the tag is on
+`P1`, a user of the tag gets old installer code:
+
+| GitHub reads  | From commit     | The file contains                          |
+| ------------- | --------------- | ------------------------------------------ |
+| The workflow  | `P1`            | A call to the action in `A`                |
+| The action    | `A`             | A call to the installer in an older commit |
+| The installer | An older commit | The old code of the installer              |
+
+`P1` corrects the call in the action. But the workflow reads the action from
+`A`, and the action in `A` has the old call.
+
+The second pin commit, `P2`, points each self-reference at `P1`. The tag goes
+on `P2`, and a user of the tag gets the current code:
+
+| GitHub reads  | From commit | The file contains                 |
+| ------------- | ----------- | --------------------------------- |
+| The workflow  | `P2`        | A call to the action in `P1`      |
+| The action    | `P1`        | A call to the installer in `A`    |
+| The installer | `A`         | The current code of the installer |
+
+To release the version `vX.Y.Z`:
+
+1. Make sure that `main` has all the changes of the release.
+1. Create a branch from `main`.
+1. Run the script. Then commit the result. This commit is the first pin
+   commit.
+
+   ```console
+   scripts/update-kubewarden-refs.sh
+   git commit --all --signoff --message "chore: pin self-references for vX.Y.Z"
+   ```
+
+   The script also reports that it skipped the `sigstore/cosign-installer`
+   pins. Renovate updates those pins.
+
+1. Do the previous step again. This commit is the second pin commit.
+1. Open a pull request with the two pin commits. Add the
+   `release/skip-changelog` label to the pull request. Release Drafter then
+   keeps the pull request out of the release notes.
+1. Merge the pull request with the "Create a merge commit" method.
+
+   CAUTION: Do not use the squash method or the rebase method. These methods
+   give the pin commits new SHAs. The self-references then point at commits
+   that are not on `main`.
+
+1. Update your local `main` branch. Then make sure that it contains the second
+   pin commit. The command must print `ok`.
+
+   ```console
+   git merge-base --is-ancestor <SHA of the second pin commit> main && echo ok
+   ```
+
+1. Read the draft of the release notes that Release Drafter wrote. If the
+   users must do something to update, add the instructions to the draft.
+1. Create a signed tag on the second pin commit. Do not tag the merge commit,
+   because it can contain changes from other pull requests.
+
+   ```console
+   git tag --sign vX.Y.Z --message vX.Y.Z <SHA of the second pin commit>
+   ```
+
+1. Push the tag. The `GH release` workflow then publishes the draft with the
+   name of the tag.
+
+   ```console
+   git push git@github.com:kubewarden/github-actions.git vX.Y.Z
+   ```
