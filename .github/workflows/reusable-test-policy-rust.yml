@@ -53,11 +53,11 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install dependencies
-        uses: kubewarden/github-actions/policy-gh-action-dependencies@1a674c5c7f808bbe48765e5f9a01c6818a3642ac
+        uses: kubewarden/github-actions/policy-gh-action-dependencies@470a5a72c2a84792feba99275b024a46d5812f55
       - name: Build and annotate policy
         with:
           generate-sbom: false
-        uses: kubewarden/github-actions/policy-build-rust@1a674c5c7f808bbe48765e5f9a01c6818a3642ac
+        uses: kubewarden/github-actions/policy-build-rust@470a5a72c2a84792feba99275b024a46d5812f55
       - name: Run e2e tests
         run: |
           make e2e-tests
