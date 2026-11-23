@@ -13,7 +13,9 @@ The downloaded zip contains both the `kwctl` binary and its
 ## Inputs
 
 * `KWCTL_VERSION`: (**optional**) the version of kwctl to be downloaded.
-  Accepts a specific semver tag (e.g. `v1.34.2`) or the special value
+  Accepts a specific semver tag (e.g. `v1.39.0`) or the special value
   `latest`, which resolves to the most recent release in
   `kubewarden/adm-controller` (including `rc`, `alpha`, and `beta`
-  pre-releases).
+  pre-releases). The default is `v1.39.0`. The action does not support
+  releases before `v1.36.0-alpha1`. Their signature has the old repository
+  name, `kubewarden/kubewarden-controller`, and the signature check fails.
